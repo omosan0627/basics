@@ -1,10 +1,14 @@
 \documentclass[a4paper,10pt]{article}
 \usepackage{amsmath,amssymb}
+\usepackage{amsthm}
 \usepackage[pdftex]{graphicx}
 \usepackage{here}
+\usepackage{url}
+\usepackage{enumerate}
 
-\newtheorem{definition}{Definition}[section]
+\theoremstyle{definition}
 \newtheorem{thm}{\bfseries Theorem}[section]
+\newtheorem{definition}[thm]{\bfseries Definition}
 \newtheorem{lem}[thm]{\bfseries Lemma}        %% lemmas, props, cor, etc
 \newtheorem{remark}[thm]{\bfseries Remark}    %%   are numbered consecutively
 \newtheorem{iden}{\bfseries Identity}         %%   with the theorems.
@@ -29,7 +33,46 @@
 \begin{document}
 \maketitle
 
-\section{定義}
+\section{圏論入門}
+\subsection{圏論とは何か}
+\url{http://alg-d.com/math/kan_extension/intro.pdf}
+\begin{definition}
+    圏$C$とは二つの集まり$Ob(C)$, $Mor(C)$の組であって, 以下の条件を満たすものをいう. 
+    なお元$a \in Ob(C)$を対象, $f \in Mor(C)$を射と呼ぶ.
+    \begin{enumerate}[(1)]
+        \item 各$f \in Mor(C)$に対して, ドメインと呼ばれる対象$dom(f)\in Ob(C)$
+        とコドメインと呼ばれる対象$\mathrm{cod}(f) \in Ob(C)$が定められている.
+        $dom(f) = a$, $\mathrm{cod}(f) = b$であることを$f:a \rightarrow b$や$a \xrightarrow{f} b$と書いて表す.
+        また対象$a,b  \in Ob(C)$に対して$\mathrm{Hom}_C(a,b):=\{f \in Mor(C): a \xrightarrow{f} b\}$と書く.
+        \item 2つの射$f,g \in Mor(C)$について$\mathrm{cod}(f) = dom(g)$であるとき, 
+        $f$と$g$の合成射とよばれる射$g \circ f$が定められていて, $dom(g \circ f)=dom(f), \mathrm{cod}(g \circ f)=\mathrm{cod}(g)$
+        を満たす。
+        \item 射の合成は結合則を満たす. ($h \circ (g \circ f) = (h \circ g) \circ f$)
+        \item 各$a \in Ob(c)$に対して, 恒等射と呼ばれる射$id_{a}:a \rightarrow a$が存在し, 射の合成
+        に関する単位元となる. すなわち$f:a \rightarrow b$に対して, $f \circ id_a = f, id_b \circ f = f$である.
+    \end{enumerate}
+\end{definition}
+\begin{exmp}
+    $\mathbf{Set}, \mathbf{Grp}, \mathbf{Top}$
+\end{exmp}
+\begin{definition}
+    $C,D$を圏とする. $C$から$D$への関手$F:C \rightarrow D$とは$a \in Ob(C)$に$F(a) \in Ob(D)$を, 
+    $f \in Mor(C)$に$F(f) \in Mor(D)$を対応させる関数であって, 以下を満たすものである.
+    \begin{enumerate}[(1)]
+        \item $f: a \rightarrow b$のとき$F(f): F(a) \rightarrow F(b)$である.
+        \item $\mathrm{cod}(f) = dom(g)$のとき,$F(g \circ f)= F(g) \circ F(f)$である.
+        \item $a \in C$に対して$F(id_a) = id_{F(a)}$である.
+    \end{enumerate}
+\end{definition}
+\begin{definition}
+    $C$を圏, $a,b \in C$を対象とする.
+    \begin{enumerate}[(1)]
+        \item $C$の射$f:a \rightarrow b$が同型射\\
+        $\Leftrightarrow$ある射$g:b \rightarrow a$が存在して, $g \circ f = id_a, f \circ g = id_b$となる
+        \item $a$と$b$が同型 $\Leftrightarrow$ ある同型射$f:a \rightarrow b$が存在する.
+    \end{enumerate}
+\end{definition}
+
 
 
 \end{document}

@@ -5,6 +5,7 @@
 \usepackage{here}
 \usepackage{url}
 \usepackage{enumerate}
+\usepackage[all]{xy}
 
 \theoremstyle{definition}
 \newtheorem{thm}{\bfseries Theorem}[section]
@@ -29,7 +30,6 @@
 
 \title{圏論}
 \author{omosan0627}
-\date{2023/05/24}
 \begin{document}
 \maketitle
 
@@ -71,6 +71,22 @@
         $\Leftrightarrow$ある射$g:b \rightarrow a$が存在して, $g \circ f = id_a, f \circ g = id_b$となる
         \item $a$と$b$が同型 $\Leftrightarrow$ ある同型射$f:a \rightarrow b$が存在する.
     \end{enumerate}
+\end{definition}
+\subsection{自然変換・圏同値}
+\begin{definition}
+    $C,D$を圏, $F,G:C \rightarrow D$を関手とする. $F$から$G$への自然変換とは, $D$の射の族
+    $\theta=\{\theta_a: Fa \rightarrow Fg\}_{a\in \mathrm{Ob}(C)}$であって, $C$の射$f:a \rightarrow b$
+    に対して$Gf \circ \theta_a = \theta_b Ff$を満たすものをいう. またこのとき$\theta_a$は$a$について
+    自然という言い方をする.
+    \begin{align*}
+\xymatrix{
+a\ar@{|->}@/^18pt/@<0.5ex>[rr]^-{F} \ar[d]^-{f} 
+\ar@{|->}@/^36pt/@<2.0ex>[rrr]^-{G}& & 
+Fa\ar[r]^-{\theta_a} \ar[d]^{Ff}& Ga \ar[d]^-{Gf} \\
+b& 
+& Fb\ar[r]^-{\theta_b}& Gb
+}
+    \end{align*}
 \end{definition}
 
 

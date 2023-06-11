@@ -33,51 +33,65 @@
 \begin{document}
 \maketitle
 
+とくに断らない限り、圏はlocally smallとする. (小圏とは違うよ)
 \section{圏論入門}
 \subsection{圏論とは何か}
 \url{http://alg-d.com/math/kan_extension/intro.pdf}
 \begin{definition}
-    圏$C$とは二つの集まり$Ob(C)$, $Mor(C)$の組であって, 以下の条件を満たすものをいう. 
-    なお元$a \in Ob(C)$を対象, $f \in Mor(C)$を射と呼ぶ.
+    圏$C$とは二つの集まり$\mathrm{Ob}(C)$, $\mathrm{Mor}(C)$の組であって, 以下の条件を満たすものをいう. 
+    なお元$a \in \mathrm{Ob}(C)$を対象, $f \in \mathrm{Mor}(C)$を射と呼ぶ.
     \begin{enumerate}[(1)]
-        \item 各$f \in Mor(C)$に対して, ドメインと呼ばれる対象$dom(f)\in Ob(C)$
-        とコドメインと呼ばれる対象$\mathrm{cod}(f) \in Ob(C)$が定められている.
-        $dom(f) = a$, $\mathrm{cod}(f) = b$であることを$f:a \rightarrow b$や$a \xrightarrow{f} b$と書いて表す.
-        また対象$a,b  \in Ob(C)$に対して$\mathrm{Hom}_C(a,b):=\{f \in Mor(C): a \xrightarrow{f} b\}$と書く.
-        \item 2つの射$f,g \in Mor(C)$について$\mathrm{cod}(f) = dom(g)$であるとき, 
-        $f$と$g$の合成射とよばれる射$g \circ f$が定められていて, $dom(g \circ f)=dom(f), \mathrm{cod}(g \circ f)=\mathrm{cod}(g)$
+        \item 各$f \in \mathrm{Mor}(C)$に対して, ドメインと呼ばれる対象$\mathrm{dom}(f)\in \mathrm{Ob}(C)$
+        とコドメインと呼ばれる対象$\mathrm{cod}(f) \in \mathrm{Ob}(C)$が定められている.
+        $\mathrm{dom}(f) = a$, $\mathrm{cod}(f) = b$であることを$f:a \rightarrow b$や$a \xrightarrow{f} b$と書いて表す.
+        また対象$a,b  \in \mathrm{Ob}(C)$に対して$\mathrm{Hom}_C(a,b):=\{f \in \mathrm{Mor}(C): a \xrightarrow{f} b\}$と書く.
+        \item 2つの射$f,g \in \mathrm{Mor}(C)$について$\mathrm{cod}(f) = \mathrm{dom}(g)$であるとき, 
+        $f$と$g$の合成射とよばれる射$g \circ f$が定められていて, $\mathrm{dom}(g \circ f)=\mathrm{dom}(f), \mathrm{cod}(g \circ f)=\mathrm{cod}(g)$
         を満たす。
         \item 射の合成は結合則を満たす. ($h \circ (g \circ f) = (h \circ g) \circ f$)
-        \item 各$a \in Ob(c)$に対して, 恒等射と呼ばれる射$id_{a}:a \rightarrow a$が存在し, 射の合成
-        に関する単位元となる. すなわち$f:a \rightarrow b$に対して, $f \circ id_a = f, id_b \circ f = f$である.
+        \item 各$a \in \mathrm{Ob}(C)$に対して, 恒等射と呼ばれる射$\mathrm{id}_{a}:a \rightarrow a$が存在し, 射の合成
+        に関する単位元となる. すなわち$f:a \rightarrow b$に対して, $f \circ \mathrm{id}_a = f, \mathrm{id}_b \circ f = f$である.
     \end{enumerate}
 \end{definition}
 \begin{exmp}
     $\mathbf{Set}, \mathbf{Grp}, \mathbf{Top}$
 \end{exmp}
 \begin{definition}
-    $C,D$を圏とする. $C$から$D$への関手$F:C \rightarrow D$とは$a \in Ob(C)$に$F(a) \in Ob(D)$を, 
-    $f \in Mor(C)$に$F(f) \in Mor(D)$を対応させる関数であって, 以下を満たすものである.
+    $C,D$を圏とする. $C$から$D$への関手$F:C \rightarrow D$とは$a \in \mathrm{Ob}(C)$に$F(a) 
+    \in \mathrm{Ob}(D)$を, 
+    $f \in \mathrm{Mor}(C)$に$F(f) \in \mathrm{Mor}(D)$を対応させる関数であって, 以下を満たすものである.
     \begin{enumerate}[(1)]
         \item $f: a \rightarrow b$のとき$F(f): F(a) \rightarrow F(b)$である.
-        \item $\mathrm{cod}(f) = dom(g)$のとき,$F(g \circ f)= F(g) \circ F(f)$である.
-        \item $a \in C$に対して$F(id_a) = id_{F(a)}$である.
+        \item $\mathrm{cod}(f) = \mathrm{dom}(g)$のとき,$F(g \circ f)= F(g) \circ F(f)$である.
+        \item $a \in C$に対して$F(\mathrm{id}_a) = \mathrm{id}_{F(a)}$である.
     \end{enumerate}
 \end{definition}
 \begin{definition}
     $C$を圏, $a,b \in C$を対象とする.
     \begin{enumerate}[(1)]
         \item $C$の射$f:a \rightarrow b$が同型射\\
-        $\Leftrightarrow$ある射$g:b \rightarrow a$が存在して, $g \circ f = id_a, f \circ g = id_b$となる
-        \item $a$と$b$が同型 $\Leftrightarrow$ ある同型射$f:a \rightarrow b$が存在する.
+        $\Longleftrightarrow$ある射$g:b \rightarrow a$が存在して, $g \circ f = \mathrm{id}_a, f \circ g = \mathrm{id}_b$となる
+        \item $a$と$b$が同型($a \cong b$で表す) $\Longleftrightarrow$ ある同型射$f:a \rightarrow b$が存在する.
     \end{enumerate}
 \end{definition}
+\begin{thm}
+    $f$が同型射ならば$F(f)$も同型射
+\end{thm}
+
+\begin{definition}
+    圏$C$と圏$D$が同型($C \cong D$と書く)とは, ある関手$F: C \rightarrow D,
+    G: D \rightarrow C$が存在して$GF= \mathrm{\mathrm{id}}_C, FG=\mathrm{id}_D$.
+\end{definition}
+
+
+
 \subsection{自然変換・圏同値}
+\url{http://alg-d.com/math/kan_extension/equivalence.pdf}
 \begin{definition}
     $C,D$を圏, $F,G:C \rightarrow D$を関手とする. $F$から$G$への自然変換とは, $D$の射の族
-    $\theta=\{\theta_a: Fa \rightarrow Fg\}_{a\in \mathrm{Ob}(C)}$であって, $C$の射$f:a \rightarrow b$
-    に対して$Gf \circ \theta_a = \theta_b Ff$を満たすものをいう. またこのとき$\theta_a$は$a$について
-    自然という言い方をする.
+    $\theta=\{\theta_a: Fa \rightarrow Fb\}_{a\in \mathrm{Ob}(C)}$であって, $C$の射$f:a \rightarrow b$
+    に対して$Gf \circ \theta_a = \theta_b Ff$を満たすものをいう. (またこのとき$\theta_a$は$a$について
+    自然という言い方をする.) 絵で書けば以下のようになる. 
     \begin{align*}
 \xymatrix{
 a\ar@{|->}@/^18pt/@<0.5ex>[rr]^-{F} \ar[d]^-{f} 
@@ -87,6 +101,24 @@ b&
 & Fb\ar[r]^-{\theta_b}& Gb
 }
     \end{align*}
+$\theta$が$F$から$G$への自然変換であることを記号で$\theta: F \Rightarrow G$と表す.
+また$\theta_a$を$\theta$の$a$成分と呼ぶ.
+\end{definition}
+\begin{definition}
+    各$\theta_a$が同型射となる自然変換$\theta$を自然同型という. また自然同型
+    $F \Rightarrow G$が存在するとき, $F$と$G$は自然同型であるといい,
+    記号で$F \cong G$と表す.
+\end{definition}
+\begin{exmp}
+    有限次元線形空間$V$と$V^{**}$についての自然変換$\theta: \mathrm{id}_c 
+    \Rightarrow F \circ F^{\mathrm{op}}, \theta_V(x)(\rho) \mapsto \rho(x)$.
+    線形代数の世界p135も参照. $V^*$の場合と違って, 基底を出さなくても自然変換が
+    作れるところがポイント.
+\end{exmp}
+\begin{definition}
+    圏$C, D$が圏同値($C \simeq D$と書く)\\
+    $\Longleftrightarrow$ 関手$F: C \rightarrow D, G: D \rightarrow C$
+    と自然変換$GF \cong \mathrm{id}_C, FG \cong \mathrm{id}_D$が存在する. 
 \end{definition}
 
 

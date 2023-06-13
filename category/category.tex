@@ -89,9 +89,9 @@
 \url{http://alg-d.com/math/kan_extension/equivalence.pdf}
 \begin{definition}
     $C,D$を圏, $F,G:C \rightarrow D$を関手とする. $F$から$G$への自然変換とは, $D$の射の族
-    $\theta=\{\theta_a: Fa \rightarrow Fb\}_{a\in \mathrm{Ob}(C)}$であって, $C$の射$f:a \rightarrow b$
-    に対して$Gf \circ \theta_a = \theta_b Ff$を満たすものをいう. (またこのとき$\theta_a$は$a$について
-    自然という言い方をする.) 絵で書けば以下のようになる. 
+    $\theta=\{\theta_a: Fa \rightarrow Fb\}_{a\in \mathrm{Ob}(C)}$であって, 
+    $\forall (a \xrightarrow{f} b) \in \mathrm{Mor}(C).\ Gf \circ \theta_a = \theta_b \circ Ff$を満たすものをいう. 
+    (またこのとき$\theta_a$は$a$について自然という言い方をする.) 絵で書けば以下のようになる. 
     \begin{align*}
 \xymatrix{
 a\ar@{|->}@/^18pt/@<0.5ex>[rr]^-{F} \ar[d]^-{f} 
@@ -119,6 +119,66 @@ $\theta$が$F$から$G$への自然変換であることを記号で$\theta: F \
     圏$C, D$が圏同値($C \simeq D$と書く)\\
     $\Longleftrightarrow$ 関手$F: C \rightarrow D, G: D \rightarrow C$
     と自然変換$GF \cong \mathrm{id}_C, FG \cong \mathrm{id}_D$が存在する. 
+\end{definition}
+\begin{definition}
+    $C, D$を圏, $F:C \rightarrow D$を関手とする. 
+    \begin{enumerate}[(1)]
+        \item $F$が忠実$\Longleftrightarrow$ 
+        $\forall a,b \in \mathrm{Ob}(C).\  
+        F: \mathrm{Hom}_C(a,b) \rightarrow \mathrm{Hom}_C(Fa,Fb)$が単射.
+        \item $F$が充満$\Longleftrightarrow$ 
+        $\forall a,b \in \mathrm{Ob}(C).\  
+        F: \mathrm{Hom}_C(a,b) \rightarrow \mathrm{Hom}_C(Fa,Fb)$が全射.
+        \item $F$がconservative$\Longleftrightarrow$ 
+        $\forall f \in \mathrm{Mor}(C).\  
+        Ff \text{が同型ならば} f \text{も同型である}$.
+        \item $F$が本質的単射$\Longleftrightarrow$ 
+        $\forall a, b \in \mathrm{Ob}(C).\  
+        Fa \cong Fb \text{ならば} a \cong b$ \\
+        ($\Longleftrightarrow Fa\text{と}Fb\text{に同型射が存在するならば, }
+        a\text{と}b\text{にも同型射が存在する.}$)
+        \item $F$が本質的全射$\Longleftrightarrow$ 
+        $\forall d \in \mathrm{Ob}(D).\  
+        \exists c \in \mathrm{Ob}(C).\ Fc \cong d$
+    \end{enumerate}
+\end{definition}
+\begin{prop}
+        忠実充満$\Longrightarrow$ conservative, 
+        忠実$\lor$ conservative $\Longrightarrow$ 本質的単射
+\end{prop}
+\begin{thm}
+    $F$が圏同値を与える $\Longleftrightarrow$
+    $F$が忠実充満な本質的全射
+\end{thm}
+\begin{proof}
+    $F$が圏同値を与えるという条件は, 
+    $G: D \rightarrow C$と自然同型$\theta: GF \Rightarrow \mathrm{id}_C, \epsilon:
+    \Rightarrow \mathrm{id}_D$を使って, 以下で表される. 
+\begin{align*}
+    \forall& (c \xrightarrow{f} c') \in \mathrm{Mor}(C), 
+    (d \xrightarrow{g} d') \in \mathrm{Mor}(D).\\
+&\xymatrix{
+GFc \ar[r]^-{\theta_c} \ar[d]^-{GFf} & c \ar[d]^-{f}& 
+FGd\ar[r]^-{\epsilon_d} \ar[d]^{FGg} & d \ar[d]^-{g} \\
+GFc' \ar[r]^-{\theta_{c'}}& c' 
+& FGd\ar[r]^-{\epsilon_{d'}}& d'
+}
+    \end{align*}
+そして、$\theta_c, \epsilon_d$等の射が同型なので逆向きの$\theta_c^{-1}, \epsilon_d^{-1}$が存在することを使う.
+
+\end{proof}
+\begin{thm}
+    $F$が同型 $\Longleftrightarrow$
+    $F$が忠実充満で, 対象について全単射
+\end{thm}
+\section{圏論}
+\subsection{随伴写像}
+\url{http://alg-d.com/math/kan_extension/adjoint.pdf}
+\begin{definition}
+    $C, D$を圏, $F: C \rightarrow D, G: D \rightarrow C$を関手とする. $c \in C, d \in D$について
+    自然な全単射$\phi_{cd}: \mathrm{Hom}_D(Fc, d) \rightarrow \mathrm{Hom}_C(c,Gd)$が存在するとき,
+    3つ組$\langle F,G,\phi \rangle$のことを随伴という. このとき記号では$F \dashv G: C \rightarrow D$
+    もしくは単に$F \dashv G$と書く. また$F$を$G$の左随伴写像, $G$を$F$の右随伴写像という.
 \end{definition}
 
 

@@ -82,6 +82,24 @@
     圏$C$と圏$D$が同型($C \cong D$と書く)とは, ある関手$F: C \rightarrow D,
     G: D \rightarrow C$が存在して$GF= \mathrm{\mathrm{id}}_C, FG=\mathrm{id}_D$.
 \end{definition}
+\begin{definition}
+    $C$を圏とする. このとき$C^{\mathrm{op}}$を以下のように定める.
+    \begin{itemize}
+        \item 対象$a \in C$に対して新しい対象$a^{\mathrm{op}}$を用意し, $\mathrm{Ob}(C^{\mathrm{op}})
+        := \{a^{\mathrm{op}}:a \in \mathrm{Ob}(C)\}$と定める. 
+        \item 射$f \in C$に対して新しい射$f^{\mathrm{op}}$を用意し, $\mathrm{Mor}(C^{\mathrm{op}})
+        := \{f^{\mathrm{op}}:f \in \mathrm{Ob}(C)\}$と定める. 
+        \item $\mathrm{dom}(f^{\mathrm{op}}):=\mathrm{cod}(f)^{\mathrm{op}}, 
+        \mathrm{cod}(f^{\mathrm{op}}):=\mathrm{dom}(f)^{\mathrm{op}}$と定める. 即ち$f:a \rightarrow b$
+        のとき$f^{\mathrm{op}}: b^{\mathrm{op}} \rightarrow a^{\mathrm{op}}$である.
+        \item $f^{\mathrm{op}}:a^{\mathrm{op}} \rightarrow b^{\mathrm{op}}, g^{\mathrm{op}}
+        : b^{\mathrm{op}} \rightarrow c^{\mathrm{op}}$に対して射の合成
+        $g^{\mathrm{op}}\circ f^{\mathrm{op}}: a^{\mathrm{op}} \rightarrow c^{\mathrm{op}}$
+        を $g^{\mathrm{op}}\circ f^{\mathrm{op}}=(f \circ g)^{\mathrm{op}}$と定める.
+        \item $\mathrm{id}_{a^{\mathrm{op}}}:= \mathrm{id}_a^{\mathrm{op}}$とする.
+    \end{itemize}
+    これを圏$C^{\mathrm{op}}$の反対圏と呼ぶ.
+\end{definition}
 
 
 

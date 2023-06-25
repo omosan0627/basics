@@ -194,8 +194,9 @@ GFc' \ar[r]^-{\theta_{c'}}& c'
 }
     \end{align*}
 ($\Longrightarrow$)$\epsilon$から本質的全射, $\theta$から忠実充満が示せる.
-また主に$\theta_c, \epsilon_d$等の射が同型なので逆向きの$\theta_c^{-1}, \epsilon_d^{-1}$が存在することを使う.\\
-($\Longleftarrow$)本質的全射$Fc \rightarrow d$から$G$と$\epsilon$を作る. 
+また主に$\theta_c$が同型なので逆向きの$\theta_c^{-1}$が存在することを使う.\\
+($\Longleftarrow$)本質的全射$Fc \rightarrow d$から$\epsilon$と$G$を作る. 
+$Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば自然. 
 最後に$\theta$が自然同型であることを言えばいいが, $Fc \xrightarrow{Ff} Fc'$について$\epsilon$の自然変換の図式
 を利用することで示せる. 
 
@@ -205,7 +206,7 @@ GFc' \ar[r]^-{\theta_{c'}}& c'
     $F$が忠実充満で, 対象について全単射
 \end{thm}
 \begin{proof}
-($\Longleftarrow$) Theorem \ref{faithful}と同じ。
+($\Longleftarrow$) Theorem \ref{faithful}と似ているが、ここでは本質的全射ではなく全単射.
 \end{proof}
 \begin{definition}
     部分圏$C \subseteq D$が充満部分圏であるとは、任意の$a, b\in C$に対して
@@ -248,6 +249,47 @@ GFc' \ar[r]^-{\theta_{c'}}& c'
     3つ組$\langle F,G,\phi \rangle$のことを随伴という. このとき記号では$F \dashv G: C \rightarrow D$
     もしくは単に$F \dashv G$と書く. また$F$を$G$の左随伴写像, $G$を$F$の右随伴写像という.
 \end{definition}
+\begin{definition}
+    自然同型$\phi$により次のような二つの射が一対一に対応することになる.
+    \[ f:Fc \rightarrow d, \ g:c \rightarrow Gd \]
+    $\phi_{cd}(f) = g$のとき, $g$を$f$の右随伴射, $f$を$g$の左随伴射と呼ぶ.
+    本PDFでは随伴射を$\tilde{\ }$と表すことにする. つまり$f:Fc \rightarrow d, g:
+    c \rightarrow Gd$のとき, $\tilde{f}: c \rightarrow Gd, \tilde{g}: Fc \rightarrow d$
+    であり, $\phi_{cd}(f) = \tilde{f}, \phi_{cd}(\tilde{g}) = g$である.
+\end{definition}
+\begin{thm}
+    $f:Fc \rightarrow d, h:Fc' \rightarrow d', p: c \rightarrow c', q: d \rightarrow d'$
+    とする. この時次の左の図式が可換ならば右の図式も可換であり, 右の図式が可換ならば, 左の図も
+    可換である.
+\begin{align*}
+\xymatrix{
+Fc \ar[r]^-{f} \ar[d]^-{Fp} & d \ar[d]^-{q}& 
+Fc'\ar[r]^-{\tilde{f}} \ar[d]^{p} & d' \ar[d]^-{Gq} \\
+c \ar[r]^-{h}& Gd
+& c'\ar[r]^-{\tilde{h}}& Gd'
+}
+\end{align*}
+\end{thm}
+\begin{proof}
+    $\phi_{cd}$の自然変換の可換図から. $c,d$それぞれ固定したときを考える.
+    $q, Gq$の向きを入れ替えた図式についても成立する.
+\end{proof}
+\begin{definition}
+    $d=Fc$とすると$\textrm{Hom}_D(Fc, FC) \cong \textrm{Hom}_C(c, GFc)$
+    となる.左辺の$\textrm{id}_{Fc}$について, $\eta_{c}:= \widetilde{\textrm{id}_{Fc}}$と定義する.
+\end{definition}
+\begin{thm}
+    $\langle Fc, \eta_{c} \rangle$は$c$から$G$への普遍射である.
+\end{thm}
+
+\begin{cor}
+    全単射$\textrm{Hom}_D(Fc, d) \rightarrow \textrm{Hom}_C(c, Gd)$
+    は$f \mapsto Gf \circ \eta_c$で与えられる.
+\end{cor}
+\begin{thm}
+    $G: D \rightarrow C$を関手として, 各$c \in C$に対して普遍射$\eta_c:c \rightarrow Gd_c$
+    が存在するとする. このとき対応$c \mapsto d_c$は関手$F: C \rightarrow D$を定め, $F \dashv G$となる.
+\end{thm}
 
 
 

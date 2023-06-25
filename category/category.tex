@@ -3,6 +3,7 @@
 \usepackage{amsthm}
 \usepackage[pdftex]{graphicx}
 \usepackage{here}
+\usepackage{bm}
 \usepackage{url}
 \usepackage{enumerate}
 \usepackage[all]{xy}
@@ -46,13 +47,22 @@
         $\mathrm{dom}(f) = a$, $\mathrm{cod}(f) = b$であることを$f:a \rightarrow b$や$a \xrightarrow{f} b$と書いて表す.
         また対象$a,b  \in \mathrm{Ob}(C)$に対して$\mathrm{Hom}_C(a,b):=\{f \in \mathrm{Mor}(C): a \xrightarrow{f} b\}$と書く.
         \item 2つの射$f,g \in \mathrm{Mor}(C)$について$\mathrm{cod}(f) = \mathrm{dom}(g)$であるとき, 
-        $f$と$g$の合成射とよばれる射$g \circ f$が定められていて, $\mathrm{dom}(g \circ f)=\mathrm{dom}(f), \mathrm{cod}(g \circ f)=\mathrm{cod}(g)$
+        $f$と$g$の合成射とよばれる射$g \circ f \in \mathrm{Mor}(C)$が定められていて, $\mathrm{dom}(g \circ f)=\mathrm{dom}(f), \mathrm{cod}(g \circ f)=\mathrm{cod}(g)$
         を満たす。
         \item 射の合成は結合則を満たす. ($h \circ (g \circ f) = (h \circ g) \circ f$)
         \item 各$a \in \mathrm{Ob}(C)$に対して, 恒等射と呼ばれる射$\mathrm{id}_{a}:a \rightarrow a$が存在し, 射の合成
         に関する単位元となる. すなわち$f:a \rightarrow b$に対して, $f \circ \mathrm{id}_a = f, \mathrm{id}_b \circ f = f$である.
     \end{enumerate}
 \end{definition}
+\begin{remark}
+    $C = (\textrm{Ob}(C), \textrm{Mor}(C), \textrm{cod}, \textrm{dom}, \textrm{id}, \circ)$と書き表すことも。
+    \begin{itemize}
+     \item $\textrm{Ob}(C), \textrm{Mor}(C)$が集まり
+     \item $\textrm{cod}, \textrm{cod}$が$\text{Mor}(C) \rightarrow \text{Ob}(C)$の関数
+     \item $\textrm{id}$が$\textrm{Ob}(C) \rightarrow \textrm{Mor}(C)$の関数
+     \item $\circ$が$\textrm{Mor}(C) \times \textrm{Mor}(C) \rightarrow \textrm{Mor}(C)$の関数
+    \end{itemize}
+\end{remark}
 \begin{exmp}
     $\mathbf{Set}, \mathbf{Grp}, \mathbf{Top}$
 \end{exmp}
@@ -134,7 +144,7 @@ $\theta$が$F$から$G$への自然変換であることを記号で$\theta: F \
     作れるところがポイント.
 \end{exmp}
 \begin{definition}
-    圏$C, D$が圏同値($C \simeq D$と書く)\\
+    圏$C, D$が圏同値($\bm{C \simeq D}$と書く)\\
     $\Longleftrightarrow$ 関手$F: C \rightarrow D, G: D \rightarrow C$
     と自然変換$GF \cong \mathrm{id}_C, FG \cong \mathrm{id}_D$が存在する. 
 \end{definition}
@@ -162,9 +172,10 @@ $\theta$が$F$から$G$への自然変換であることを記号で$\theta: F \
 \end{definition}
 \begin{prop}
         忠実充満$\Longrightarrow$ conservative, 
-        忠実$\lor$ conservative $\Longrightarrow$ 本質的単射
+        忠実$\land$ conservative $\Longrightarrow$ 本質的単射
 \end{prop}
 \begin{thm}
+    \label{faithful}
     $F$が圏同値を与える $\Longleftrightarrow$
     $F$が忠実充満な本質的全射
 \end{thm}
@@ -193,6 +204,41 @@ GFc' \ar[r]^-{\theta_{c'}}& c'
     $F$が同型 $\Longleftrightarrow$
     $F$が忠実充満で, 対象について全単射
 \end{thm}
+\begin{proof}
+($\Longleftarrow$) Theorem \ref{faithful}と同じ。
+\end{proof}
+\begin{definition}
+    部分圏$C \subseteq D$が充満部分圏であるとは、任意の$a, b\in C$に対して
+    $\textrm{Hom}_{C}(a,b) = \textrm{Hom}_{D}(a,b)$となることをいう.
+\end{definition}
+\begin{definition}
+    圏$C$が骨格的 $\Longleftrightarrow$ $a \cong b$ならば$a=b$である
+\end{definition}
+\begin{definition}
+    圏$C$の骨格とは, 骨格的な充満部分圏$S \subseteq C$であって条件
+    \begin{center}
+        任意の$c$に対して, ある$s\in S$が存在して$c \cong s$となる
+    \end{center}
+    を満たすものをいう.
+\end{definition}
+\begin{thm}
+    任意の圏は骨格を持つ. また骨格は圏同型を除いて一意である.
+\end{thm}
+\begin{proof}
+    骨格を持つことを示す際に選択公理が必要. 一意性は$F$を同型射を利用して作って
+    Theorem \ref{faithful}を適用.
+\end{proof}
+\begin{thm}
+    $C, D$を圏, $S \subseteq C, T \subseteq D$を骨格とする. このとき
+    \begin{center}
+        $C$と$D$が圏同値 $\Longleftrightarrow$ $S$と$T$が圏同型
+    \end{center}
+\end{thm}
+\begin{proof}
+    ($\Longrightarrow$) $F$を$S$に制限した関手$F|_S$が圏同型であることを使うとできる. 本質的単射
+    を使う.\\
+    ($\Longleftarrow$) 包含関手が圏同値であることを利用する.
+\end{proof}
 \section{圏論}
 \subsection{随伴写像}
 \url{http://alg-d.com/math/kan_extension/adjoint.pdf}

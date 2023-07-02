@@ -110,6 +110,20 @@
     \end{itemize}
     これを圏$C^{\mathrm{op}}$の反対圏と呼ぶ.
 \end{definition}
+\begin{definition}
+    圏$C, D$の直積$C \times D$を以下のように定義する.
+    \begin{itemize}
+        \item 対象は「$C$の対象と$D$の対象の組」である.
+        \item $\langle c,d \rangle$から$\langle c',d' \rangle$への射は成分ごとの射の組
+        $\langle f:c \rightarrow c', g: d \rightarrow d' \rangle$である. つまり
+        $\textrm{Hom}_{C \times D}(\langle c,d \rangle, \langle c',d' \rangle):=
+        \textrm{Hom}_C(c,c') \times \textrm{Hom}_D(d,d')$となる.
+        \item 射の合成は成分ごとに行う. 即ち$\langle g, g' \rangle \circ \langle f,f' \rangle
+        :=\langle g \circ f, g' \circ f'\rangle$となる.
+        \item $\langle c,d \rangle$の恒等射は$\textrm{id}_{\langle c,d \rangle}:=
+        \langle \textrm{id}_{c}, \textrm{id}_d \rangle$である.
+    \end{itemize}
+\end{definition}
 
 
 
@@ -118,7 +132,7 @@
 \begin{definition}
     $C,D$を圏, $F,G:C \rightarrow D$を関手とする. $F$から$G$への自然変換とは, $D$の射の族
     $\theta=\{\theta_a: Fa \rightarrow Fb\}_{a\in \mathrm{Ob}(C)}$であって, 
-    $\forall (a \xrightarrow{f} b) \in \mathrm{Mor}(C).\ Gf \circ \theta_a = \theta_b \circ Ff$を満たすものをいう. 
+    $\forall (a \xrightarrow{f} b) \in \mathrm{Mor}(C).\  \theta_b \circ Ff = Gf \circ \theta_a$を満たすものをいう. 
     (またこのとき$\theta_a$は$a$について自然という言い方をする.) 絵で書けば以下のようになる. 
     \begin{align*}
 \xymatrix{
@@ -132,6 +146,11 @@ b&
 $\theta$が$F$から$G$への自然変換であることを記号で$\theta: F \Rightarrow G$と表す.
 また$\theta_a$を$\theta$の$a$成分と呼ぶ.
 \end{definition}
+\begin{remark}
+    任意の$f$について$Ff$から$Gf$への変換則が成り立っていると思うと分かりやすい?
+    また射、関手についてだが、基本的には$\rightarrow$しか記号として使わなくて、
+    こういう圏の内部に言及するときだけ$\mapsto$を使うイメージ.
+\end{remark}
 \begin{definition}
     各$\theta_a$が同型射となる自然変換$\theta$を自然同型という. また自然同型
     $F \Rightarrow G$が存在するとき, $F$と$G$は自然同型であるといい,
@@ -241,6 +260,37 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
     ($\Longleftarrow$) 包含関手が圏同値であることを利用する.
 \end{proof}
 \section{圏論}
+\subsection{極限}
+\begin{definition}
+    $C,D$を圏とする. 対角関手$\Delta: D \rightarrow D^{C}$とは
+    \begin{itemize}
+        \item $a \in D$に対して$\Delta a$は以下で与えられる関手$\Delta a: C \rightarrow D$である.
+        \begin{itemize}
+            \item $c \in C$に対して$\Delta a(c)=a$
+            \item $f \in \textrm{Mor}(C)$に対して$\Delta a(f)=\textrm{id}_a$
+        \end{itemize}
+        \item $f : a \rightarrow b$に対して, $\Delta f$は「$c \in C$に対して, $(\Delta f)_c=f$」で与えられる
+        自然変換$\Delta f: \Delta a \rightarrow \Delta b$である.
+    \end{itemize}
+\end{definition}
+\begin{definition}
+    $C,D$を圏, $c \in C$を対象, $G: D \rightarrow C$を関手とする. 以下を満たす組$\langle d,f\rangle$
+    を$c$から$G$への普遍射という.
+    \begin{enumerate}[(1)]
+        \item $d$は$D$の対象である.
+        \item $f$は$C$の射$f: c \rightarrow Gd$である.
+        \item 組$\langle d', f' \rangle$が上2つの条件を満たすならば, $D$の射$h: d \rightarrow d'$が一意に存在して,
+        $Gh \circ f=f'$となる.
+    \end{enumerate}
+\end{definition}
+\begin{definition}
+    $J, C$を圏として, $\Delta: C \rightarrow C^{J}$を対角関手とする.
+    \begin{enumerate}[(1)]
+        \item 関手$T:J \rightarrow C$を図式という. また$J$を図式$T$の添え字圏という.
+        \item $\Delta$から$T \in C^{J}$への普遍射$\langle \textrm{lim}T, \pi \rangle$を図式$T$の極限という.
+        \item $T \in C^{J}$から$\Delta$への普遍射$\langle \textrm{colim}T, \mu \rangle$を図式$T$の余極限という.
+    \end{enumerate}
+\end{definition}
 \subsection{随伴写像}
 \url{http://alg-d.com/math/kan_extension/adjoint.pdf}
 \begin{definition}
@@ -275,7 +325,7 @@ c \ar[r]^-{h}& Gd
     $q, Gq$の向きを入れ替えた図式についても成立する.
 \end{proof}
 \begin{definition}
-    $d=Fc$とすると$\textrm{Hom}_D(Fc, FC) \cong \textrm{Hom}_C(c, GFc)$
+    $d=Fc$とすると$\textrm{Hom}_D(Fc, Fc) \cong \textrm{Hom}_C(c, GFc)$
     となる.左辺の$\textrm{id}_{Fc}$について, $\eta_{c}:= \widetilde{\textrm{id}_{Fc}}$と定義する.
 \end{definition}
 \begin{thm}

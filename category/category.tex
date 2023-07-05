@@ -4,6 +4,7 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{here}
 \usepackage{bm}
+\usepackage{bbm}
 \usepackage{url}
 \usepackage{enumerate}
 \usepackage[all]{xy}
@@ -260,6 +261,31 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
     ($\Longleftarrow$) 包含関手が圏同値であることを利用する.
 \end{proof}
 \section{圏論}
+\subsection{自然変換・関手圏}
+\subsection{コンマ圏}
+\begin{definition}
+    $C_0, C_1, D$を圏, $K: C_0 \rightarrow D, L: C_1 \rightarrow D$を関手とする. 以下のようにして
+    定まる圏をコンマ圏といい, $K \downarrow L$と書く.
+    \begin{itemize}
+        \item $K \downarrow L$の対象は組$\langle c_0, c_1, f \rangle$であり以下を満たすものとする.
+        \begin{enumerate}[(1)]
+            \item $c_0$は$C$の対象である.
+            \item $c_1$は$C$の対象である.
+            \item $f: K c_0 \rightarrow L c_1$は$D$の射である.
+        \end{enumerate}
+        \item $K \downarrow L$の射$\langle c_0, c_1, f \rangle \rightarrow \langle c_0', c_1', f' \rangle$
+        とは組$\langle g_0, g_1 \rangle$であり以下を満たすものである.
+        \begin{enumerate}[(1)]
+            \item $g_0: c_0 \rightarrow c_0'$は$C_0$の射である
+            \item $g_1: c_1 \rightarrow c_1'$は$C_1$の射である
+            \item $L g_1 \circ f = f' \circ K g_0$, 即ち次の図式を可換にする.\\
+            図図図図図図図ずっずず
+        \end{enumerate}
+    \end{itemize}
+\end{definition}
+\begin{remark}
+    自然変換の一般化ぽくなっている.
+\end{remark}
 \subsection{極限}
 \begin{definition}
     $C,D$を圏とする. 対角関手$\Delta: D \rightarrow D^{C}$とは
@@ -273,6 +299,10 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
         自然変換$\Delta f: \Delta a \rightarrow \Delta b$である.
     \end{itemize}
 \end{definition}
+\begin{remark}
+    $T(c,d) \mapsto d, T(f,g) \mapsto g$となる関手$T: C \times D \rightarrow D$について,
+    $C$を右肩に移動したものと一致する.
+\end{remark}
 \begin{definition}
     $C,D$を圏, $c \in C$を対象, $G: D \rightarrow C$を関手とする. 以下を満たす組$\langle d,f\rangle$
     を$c$から$G$への普遍射という.
@@ -283,6 +313,7 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
         $Gh \circ f=f'$となる.
     \end{enumerate}
 \end{definition}
+図図図図図図図図図図図図図図図図図図図
 \begin{definition}
     $J, C$を圏として, $\Delta: C \rightarrow C^{J}$を対角関手とする.
     \begin{enumerate}[(1)]

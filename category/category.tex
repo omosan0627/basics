@@ -284,7 +284,10 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
     \end{itemize}
 \end{definition}
 \begin{remark}
-    自然変換の一般化ぽくなっている.
+    自然変換の一般化っぽくなっている. $C = C_0 = C_1$のとき, 自然変換$\theta: K \Rightarrow L$は
+    要素が$ \langle c, c, \theta_c \rangle$,
+    射が$\langle f,f \rangle$である
+    $K \downarrow L$の部分圏と対応する.
 \end{remark}
 \subsection{極限}
 \begin{definition}
@@ -322,6 +325,19 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
         \item $T \in C^{J}$から$\Delta$への普遍射$\langle \textrm{colim}T, \mu \rangle$を図式$T$の余極限という.
     \end{enumerate}
 \end{definition}
+\begin{definition}
+    関手$F:C \rightarrow \mathbf{Set}$が表現可能関手 $\Longleftrightarrow$
+    ある対象$a \in C$と自然同型$F \cong \textrm{Hom}_C(a, -)$が存在する
+\end{definition}
+\begin{thm}
+    表現可能関手$F$を表現する対象は同型を除いて一意である.
+\end{thm}
+\begin{thm}
+    $F:C \rightarrow D$を関手として, $d \in D$を取る. このとき
+    \begin{center}
+        $F$から$d$への普遍射が存在する$\Longleftrightarrow \textrm{Hom}_C(F(-),d)$が表現可能関手. 
+    \end{center}
+\end{thm}
 \subsection{随伴写像}
 \url{http://alg-d.com/math/kan_extension/adjoint.pdf}
 \begin{definition}

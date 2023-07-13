@@ -264,6 +264,7 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
 \subsection{自然変換・関手圏}
 \subsection{コンマ圏}
 \begin{definition}
+    \label{comma}
     $C_0, C_1, D$を圏, $K: C_0 \rightarrow D, L: C_1 \rightarrow D$を関手とする. 以下のようにして
     定まる圏をコンマ圏といい, $K \downarrow L$と書く.
     \begin{itemize}
@@ -289,6 +290,28 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
     射が$\langle f,f \rangle$である
     $K \downarrow L$の部分圏と対応する.
 \end{remark}
+\begin{definition}
+    Definition \ref{comma}の定義から, 関手$P_0: K \downarrow L \rightarrow C_0$,
+    $P_1: K \downarrow L \rightarrow C_1$, 自然変換$\theta: K \circ P_0 \Rightarrow L \circ P_1$を以下のように定められる。
+    \begin{itemize}
+        \item $\langle c_0, c_1, f \rangle \in \textrm{Ob}(K \downarrow L)$に対して
+        $P_0 \langle c_0, c_1, f \rangle:=c_0$, $\langle g_0, g_1 \rangle \in \textrm{Mor}(K \downarrow L)$
+        に対して$P_0 \langle g_0, g_1\rangle:=g_0$
+        \item $\langle c_0, c_1, f \rangle \in \textrm{Ob}(K \downarrow L)$に対して
+        $P_1 \langle c_0, c_1, f \rangle:=c_1$, $\langle g_0, g_1 \rangle \in \textrm{Mor}(K \downarrow L)$
+        に対して$P_1 \langle g_0, g_1\rangle:=g_1$
+        \item $\langle c_0, c_1, f \rangle \in \textrm{Ob}(K \downarrow L)$に対して
+        $\theta_{\langle c_0, c_1, f \rangle}:=f$
+    \end{itemize}
+\end{definition}
+\begin{prop}
+    もし$\langle X, Q_0, Q_1, \rho\rangle$が$\langle K \downarrow L, P_0, P_1, \theta \rangle$
+    と同じ条件を満たすならば, 関手$H: X \rightarrow K \downarrow L$が一意に存在して以下を満たす.
+    \begin{enumerate}[(1)]
+        \item $P_0 \circ H = Q_0$, $P_1 \circ H = Q_1$
+        \item $\theta_H=\rho$
+    \end{enumerate}
+\end{prop}
 \subsection{極限}
 \begin{definition}
     $C,D$を圏とする. 対角関手$\Delta: D \rightarrow D^{C}$とは
@@ -333,11 +356,22 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
     表現可能関手$F$を表現する対象は同型を除いて一意である.
 \end{thm}
 \begin{thm}
+    $\alpha: \textrm{Hom}_C(a, -) \Rightarrow F$を自然変換として米田の補題で$\alpha$に対応する$x \in Fa$を取る.
+    (補足 $x=\alpha_a(\textrm{id}_a) \in Fa$) このとき,
+    \begin{center}
+        $\alpha$が同型$\Longleftrightarrow$ 任意の$b \in C, u \in Fb$に対して, ある射$h : a \rightarrow b$が一意に存在\\して
+        $Fh(x)=u$となる.
+    \end{center}
+\end{thm}
+\begin{thm}
     $F:C \rightarrow D$を関手として, $d \in D$を取る. このとき
     \begin{center}
         $F$から$d$への普遍射が存在する$\Longleftrightarrow \textrm{Hom}_C(F(-),d)$が表現可能関手. 
     \end{center}
 \end{thm}
+\begin{remark}
+    $\textrm{Hom}_D(F(-),d) \cong \textrm{Hom}_C(-, c)$も成立する.
+\end{remark}
 \subsection{随伴写像}
 \url{http://alg-d.com/math/kan_extension/adjoint.pdf}
 \begin{definition}

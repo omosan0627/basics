@@ -117,6 +117,13 @@
     代入して, $C$の言葉で書き直すことで従うことを差す場合が多そう.
 \end{remark}
 \begin{definition}
+    $F: C \rightarrow D$を関手とするとき, 関手$F^{\mathrm{op}}: C^{\mathrm{op}} \rightarrow D^{\mathrm{op}}$を以下のように定める.
+    \begin{itemize}
+        \item $a \in \mathrm{Ob}(C^{\mathrm{op}})$に対して, $F^{\mathrm{op}}(a):=F(a)$
+        \item $f^{op} \in \mathrm{Mor}(C^{\mathrm{op}})$に対して, $F^{\mathrm{op}}(f^{\mathrm{op}}):=F(f)^{\mathrm{op}}$
+    \end{itemize}
+\end{definition}
+\begin{definition}
     圏$C, D$の直積$C \times D$を以下のように定義する.
     \begin{itemize}
         \item 対象は「$C$の対象と$D$の対象の組」である.
@@ -411,12 +418,16 @@ c \ar[r]^-{h}& Gd
 \end{proof}
 \begin{remark}
     $Fc \rightarrow d$の射がある図式だと広く成立するはず。可換である$=$2つの合成方法があったとき、
-    それが一致するなので、証明の三角形に分割すれば従いそう。
+    それが一致するなので、証明のように三角形に分割すれば従いそう。やっぱり向きが重要で、$d \rightarrow Fc$
+    となっていたら、$F$は右随伴になる。
 \end{remark}
 \begin{definition}
     $d=Fc$とすると$\textrm{Hom}_D(Fc, Fc) \cong \textrm{Hom}_C(c, GFc)$
     となる.左辺の$\textrm{id}_{Fc}$について, $\eta_{c}:= \widetilde{\textrm{id}_{Fc}}$と定義する.
 \end{definition}
+\begin{remark}
+    $\eta: \mathrm{id}_C \Rightarrow GF$の自然変換になっている。
+\end{remark}
 \begin{thm}
     $\langle Fc, \eta_{c} \rangle$は$c$から$G$への普遍射である.
 \end{thm}
@@ -428,6 +439,21 @@ c \ar[r]^-{h}& Gd
 \begin{thm}
     $G: D \rightarrow C$を関手として, 各$c \in C$に対して普遍射$\eta_c:c \rightarrow Gd_c$
     が存在するとする. このとき対応$c \mapsto d_c$は関手$F: C \rightarrow D$を定め, $F \dashv G$となる.
+\end{thm}
+\begin{thm}
+    $G:D \rightarrow C$の左随伴関手は, 存在するならば(自然同型を除いて)一意である.
+\end{thm}
+\begin{thm}
+    左随伴関手は任意の余極限と交換する. 即ち関手$T: J \rightarrow C$の余極限$\langle \mathrm{colim} T, \mu \rangle$が存在するとき,
+    $\langle F(\mathrm{colim} T), F\mu \rangle$は関手$FT: J \rightarrow D$の余極限である.
+\end{thm}
+\begin{thm}
+    $\epsilon_d:= \widetilde{\mathrm{id}_{Gd}}: FGd \rightarrow d$とすれば $\langle Gd, \epsilon_d \rangle$
+    は$F$から$d$への普遍射であり, 全単射$\mathrm{Hom}_C(c, Gd) \rightarrow \mathrm{Hom}_D(Fc,d)$
+    は$g \mapsto \epsilon_d \circ Fg$により与えられる. また$\epsilon$は自然変換$FG \Rightarrow \mathrm{id}_D$
+    となる. 逆に$F: C \rightarrow D$を関手として, 各$d \in D$に対して普遍射$\epsilon_c: Fc_{d} \rightarrow d$
+    が存在すれば, $F$は右随伴関手$G$を持つ. また右随伴は一意的であり, さらに右随伴関手は任意の極限と交換する.
+
 \end{thm}
 \section{全ての概念はKan拡張である}
 \subsection{Kan拡張}

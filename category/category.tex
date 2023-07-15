@@ -376,7 +376,7 @@ $Gg$の定義がすこしトリッキーだが忠実充満の定義に帰れば�
 \begin{remark}
     $\textrm{Hom}_D(F(-),d) \cong \textrm{Hom}_C(-, c)$も成立する.
 \end{remark}
-\subsection{随伴写像}
+\subsection{随伴関手}
 \url{http://alg-d.com/math/kan_extension/adjoint.pdf}
 \begin{definition}
     $C, D$を圏, $F: C \rightarrow D, G: D \rightarrow C$を関手とする. $c \in C, d \in D$について
@@ -409,6 +409,10 @@ c \ar[r]^-{h}& Gd
     $\phi_{cd}$の自然変換の可換図から. $c,d$それぞれ固定したときを考える.
     $q, Gq$の向きを入れ替えた図式についても成立する.
 \end{proof}
+\begin{remark}
+    $Fc \rightarrow d$の射がある図式だと広く成立するはず。可換である$=$2つの合成方法があったとき、
+    それが一致するなので、証明の三角形に分割すれば従いそう。
+\end{remark}
 \begin{definition}
     $d=Fc$とすると$\textrm{Hom}_D(Fc, Fc) \cong \textrm{Hom}_C(c, GFc)$
     となる.左辺の$\textrm{id}_{Fc}$について, $\eta_{c}:= \widetilde{\textrm{id}_{Fc}}$と定義する.

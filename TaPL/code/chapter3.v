@@ -1,3 +1,5 @@
+Require Import Psatz.
+
 Inductive term : Type :=
   | True: term
   | False: term
@@ -8,6 +10,14 @@ Inductive value: term -> Prop :=
 | v_false: value False.
 
 
+Fixpoint size (T:term): nat:=
+  match T with
+  | True => 1
+  | False => 1
+  | If t1 t2 t3 => (size t1) + (size t2) + (size t3) + 1
+  end.
+
+
 Definition eg_1 : term := If (If True False False) False True.
 
 Inductive step: term -> term-> Prop :=
@@ -15,6 +25,11 @@ Inductive step: term -> term-> Prop :=
   | EIfFalse: forall t2 t3, step (If False t2 t3) t3
   | EIf: forall t1 t1' t2 t3, (step t1 t1') -> (step (If t1 t2 t3) (If t1' t2 t3)).
 
+Lemma reduce_depth: forall t1 t2, step t1 t2 -> size t1 > size t2.
+intros. induction H. simpl. lia. simpl. lia. simpl. lia. Qed.
+
+Lemma no_step: forall t, not (step t t). unfold not.
+intros. apply reduce_depth in H. lia. Qed.
 Inductive normal: term -> Prop :=
 | nexist: forall t, (forall t1, not (step t t1)) -> normal t.
 
@@ -44,46 +59,44 @@ intros. inversion H0. subst. inversion H. subst. inversion H.  subst.
 apply IHstep in H5. subst. reflexivity. 
 Qed.  
 
+
 Inductive multistep: term->term->Prop:=
   | Init: forall t1 t2, step t1 t2 -> multistep t1 t2
   | Refl: forall t, multistep t t
-  | Trans: forall t1 t2 t3, multistep t1 t2 -> step t2 t3 -> multistep t1 t3.
+  | Trans: forall t1 t2 t3, multistep t1 t2 -> multistep t2 t3 -> multistep t1 t3.
 
-Lemma multitrans: forall t1 t2 t3, multistep t1 t2 -> multistep t2 t3 -> multistep t1 t3.
-intros. generalize dependent t1. induction H0. intros.
-apply Trans with (t2:=t1). exact H0. exact H. intros. exact H. intros. apply IHmultistep in H1.
-apply Trans with (t2 := t2). apply H1. apply H. Qed. 
+Inductive multistep2: term->term->Prop:=
+  | Refl2: forall t, multistep2 t t
+  | Trans2: forall t1 t2 t3, step t1 t2 -> multistep2 t2 t3 -> multistep2 t1 t3.
 
-Lemma multi_true: forall t1 t2, value t1 -> multistep t1 t2 -> t2 = t1.
-intros. induction H0. inversion H. subst. inversion H0.
-subst. inversion H0. reflexivity. assert (value t1). apply H. apply IHmultistep in H. subst.
-inversion H2. subst. inversion H1. subst. inversion H1. Qed.
+Lemma multistep2_trans: forall t1 t2 t3, multistep2 t1 t2 -> multistep2 t2 t3 -> multistep2 t1 t3.
+intros. generalize dependent t3. induction H. intros. apply H0.
+intros. assert (multistep2 t2 t0). apply IHmultistep2. apply H1. apply Trans2 with (t2).
+apply H. apply H2. Qed.
 
+Theorem multistep_equiv: forall t1 t2, multistep t1 t2 <-> multistep2 t1 t2.
+ split. intros. induction H. apply Trans2 with (t2:=t2). apply H. apply Refl2.
+ apply Refl2. apply multistep2_trans with t2. auto. auto. intros. induction H. apply Refl. apply Trans with (t2:=t2).
+ apply Init. apply H. apply IHmultistep2. Qed. 
 
-Lemma multi_EIf: forall t1 t1' t2 t3, multistep t1 t1' -> multistep (If t1 t2 t3) (If t1' t2 t3).
-intros. generalize dependent t2. generalize dependent t3. induction H.
-intros. apply Init. apply EIf. exact H. intros. apply Refl.
-intros. apply Trans with (t2 := If t2 t4 t0). apply IHmultistep. apply EIf. apply H0. Qed.
+Theorem thm3_5_11: forall t u v, multistep t u -> multistep t v -> normal u -> normal v -> u = v.
+intros. apply thm3_5_8 in H1,H2. apply multistep_equiv in H, H0. generalize dependent u.
+induction H0. intros. induction H. reflexivity. destruct H2.  inversion H. inversion H.
+intros. destruct H1. destruct H3. inversion H. inversion H. apply IHmultistep2.
+apply H2. assert (t2=t0). apply thm3_5_4 with (t1). apply H. apply H1. subst. apply H4.
+apply H3. Qed.
 
-Lemma multi_IfTrue: forall t1 t2 t3, multistep t1 True -> multistep (If t1 t2 t3) t2.
-intros. assert (multistep (If t1 t2 t3) (If True t2 t3)). apply multi_EIf. exact H.
-apply Trans with (t2 := (If True t2 t3)). exact H0. apply EIfTrue. Qed.
-
-
-Lemma multi_IfFalse: forall t1 t2 t3, multistep t1 False -> multistep (If t1 t2 t3) t3.
-intros. assert (multistep (If t1 t2 t3) (If False t2 t3)). apply multi_EIf. exact H.
-apply Trans with (t2 := (If False t2 t3)). exact H0. apply EIfFalse. Qed.
+Theorem multi_If: forall t t' t2 t3, multistep t t' -> multistep (If t t2 t3) (If t' t2 t3).
+intros. induction H. apply Init. apply EIf. apply H. apply Refl.
+apply Trans with (If t0 t2 t3). auto. auto. Qed.
 
 Theorem thm3_5_12: forall t, exists t1, multistep t t1 /\ normal t1.
 intros. induction t. exists True. split. apply Refl. apply thm3_5_7. apply v_true.
 exists False. split. apply Refl. apply thm3_5_7. apply v_false.
-destruct IHt1. destruct H. apply thm3_5_8 in H0. inversion H0. subst.
-apply multi_IfTrue with (t2 := t2) (t3 := t3) in H. destruct IHt2. destruct H1.
-assert ((multistep (If t1 t2 t3) t2)->(multistep t2 x)->multistep (If t1 t2 t3) x).
-apply multitrans. apply H3 in H. exists x. split. apply H. apply H2. apply H1.
-subst. apply multi_IfFalse with (t2:=t2) (t3:=t3) in H.  destruct IHt3. destruct H1.
-assert (multistep (If t1 t2 t3) t3 -> multistep t3 x -> multistep (If t1 t2 t3) x).
-apply multitrans. apply H3 in H. exists x. split. apply H. apply H2. apply H1. Qed.
-
-Theorem thm3_5_11: forall t u v, multistep t u -> multistep t v -> normal u -> normal v -> u = v.
-Admitted.
+destruct IHt1. destruct H. apply thm3_5_8 in H0. destruct H0.
+assert (multistep (If t1 t2 t3) t2). apply Trans with (If True t2 t3). apply multi_If.
+apply H. apply Init. apply EIfTrue. destruct IHt2. destruct H1.
+exists x. split. apply Trans with (t2). apply H0. apply H1. apply H2.
+assert (multistep (If t1 t2 t3) t3). apply Trans with (If False t2 t3). apply multi_If.
+apply H. apply Init. apply EIfFalse. destruct IHt3. destruct H1. exists x.
+split. apply Trans with t3. apply H0. apply H1. apply H2. Qed.

@@ -100,3 +100,53 @@ exists x. split. apply Trans with (t2). apply H0. apply H1. apply H2.
 assert (multistep (If t1 t2 t3) t3). apply Trans with (If False t2 t3). apply multi_If.
 apply H. apply Init. apply EIfFalse. destruct IHt3. destruct H1. exists x.
 split. apply Trans with t3. apply H0. apply H1. apply H2. Qed.
+
+Inductive funnystep: term -> term-> Prop :=
+  | FEIfTrue: forall t2 t3, funnystep (If True t2 t3) t2
+  | FEIfFalse: forall t2 t3, funnystep (If False t2 t3) t3
+  | FEIf: forall t1 t1' t2 t3, (funnystep t1 t1') -> (funnystep (If t1 t2 t3) (If t1' t2 t3))
+  | FEFunny: forall t1 t2 t2' t3, (funnystep t2 t2') -> (funnystep (If t1 t2 t3) (If t1 t2' t3)).
+
+Lemma diamond: forall r s t, funnystep r s -> funnystep r t -> s = t \/ funnystep s t \/ funnystep t s \/ (exists u, 
+funnystep s u /\ funnystep t u). intros. generalize dependent t. induction H. intros. inversion H0. left. reflexivity.
+subst. inversion H4. subst. right. right. right. exists t2'. split. apply H4. apply FEIfTrue.
+intros. inversion H0. left. reflexivity.
+intros. subst. inversion H4. subst. right. right. left. apply FEIfFalse. intros.
+inversion H0. subst. inversion H. subst. inversion H. subst. apply IHfunnystep in H5.
+destruct H5. left. subst. reflexivity. destruct H1.
+right. left. apply FEIf. apply H1.
+destruct H1. right. right. left. apply FEIf. apply H1. destruct H1. destruct H1. right. right. right. exists (If x t2 t3).
+split. apply FEIf. apply H1. apply FEIf. apply H2. subst.
+right. right. right. exists (If t1' t2' t3). split. apply FEFunny. apply H5. apply FEIf. apply H.
+intros. inversion H0. subst. right. right. right. exists t2'. split. apply FEIfTrue.
+apply H. subst. right. left. apply FEIfFalse. subst. right. right. right. exists (If t1' t2' t3).
+split. apply FEIf. apply H5. apply FEFunny. apply H. subst. apply IHfunnystep in H5. destruct H5.
+left. subst. reflexivity. destruct H1.
+right. left. apply FEFunny. apply H1. destruct H1. right. right. left. apply FEFunny. apply H1.
+destruct H1. destruct H1. right. right. right. exists (If t1 x t3). split.
+apply FEFunny. apply H1. apply FEFunny. apply H2. Qed.  
+
+
+Inductive funnymultistep2: term->term->Prop:=
+  | FRefl2: forall t, funnymultistep2 t t
+  | FTrans2: forall t1 t2 t3, funnystep t1 t2 -> funnymultistep2 t2 t3 -> funnymultistep2 t1 t3.
+
+Lemma funny_one_step: forall t1 t2 v, funnymultistep2 t1 v -> funnystep t1 t2 -> value v -> 
+funnymultistep2 t2 v. intros. generalize dependent t2. induction H.
+intros. destruct H1. inversion H0. inversion H0. intros.
+apply diamond with (r:=t1) (s:=t2) (t:=t0) in H. destruct H. subst. apply H0.
+destruct H. apply IHfunnymultistep2. apply H1. apply H. destruct H.
+apply FTrans2 with t2. apply H. apply H0. destruct H. destruct H.
+apply IHfunnymultistep2 in H. apply FTrans2 with x. apply H3. apply H. apply H1. apply H2. Qed.
+
+Theorem funny3_5_11: forall t u v, funnymultistep2 t u -> funnymultistep2 t v -> value u -> value v -> u = v.
+intros. generalize dependent v. induction H. intros. induction H0. reflexivity.
+destruct H1. inversion H. inversion H. intros. inversion H2. subst. destruct H3.
+inversion H. inversion H. subst. apply diamond with (r:=t1) (s:=t2) (t:=t4) in H.
+destruct H. subst. apply IHfunnymultistep2. apply H1. apply H5. apply H3.
+destruct H. apply IHfunnymultistep2. apply H1. apply FTrans2 with t4. apply H.
+apply H5. apply H3. destruct H. apply IHfunnymultistep2. apply H1. apply funny_one_step with t4.
+apply H5. apply H. apply H3. apply H3.
+destruct H. destruct H. apply IHfunnymultistep2. apply H1. assert (funnymultistep2 x v).
+apply funny_one_step with t4. apply H5. apply H6. apply H3. apply FTrans2 with x. apply H. apply H7.
+apply H3. apply H4. Qed.

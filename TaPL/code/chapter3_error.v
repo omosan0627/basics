@@ -90,14 +90,19 @@ Lemma thm3_5_4: forall t t1 t2, step t t1 -> step t t2 -> t1 = t2. Admitted.
 Lemma A4: forall t, normalstop t -> multistep t Wrong.
 intros. Admitted.
 
+Lemma nowrongorwrong: forall t, NoWrong t \/ not (NoWrong t).
+induction t. left. apply nw_true. left. apply nw_false. destruct IHt1. destruct IHt2. destruct IHt3.
+left. apply nw_if. apply H. apply H0. apply H1. right. unfold not. intros. inversion H2. contradiction. Admitted.
+
+
 Theorem thm3_5_16: forall t, NoWrong t -> ((exists u, multigoodstep t u /\ normalstop u) <-> (exists v, multistep t v /\ v = Wrong)).
 intros. split. intros. destruct H0. destruct H0. induction H0.
 apply A4 in H1. exists Wrong. split. apply H1. reflexivity. inversion H0. apply IHmultigoodstep in H4. destruct H4. destruct H4.
 exists x. split. inversion H0. apply Trans with (t2:=t2). apply H5. apply H4. apply H8. apply H1.
 intros. destruct H0. destruct H0. induction H0.
-subst. inversion H. assert ((goodstep t1 t2) \/ not (goodstep t1 t2)). apply classic. destruct H3.
-inversion H3. apply IHmultistep in H5. destruct H5. destruct H5. exists x. split. apply ETransGood with t2.
-apply H3. apply H5. apply H9. apply H1. exists t1. split. apply EMultiGood. apply H. apply nexist.
+subst. inversion H. assert ((NoWrong t2) \/ not (NoWrong t2)). apply nowrongorwrong. destruct H3. assert (NoWrong t2). apply H3.
+apply IHmultistep in H3. destruct H3. destruct H3. exists x. split. apply ETransGood with t2. apply EGood.
+apply H. apply H4. apply H0. apply H3. apply H5. apply H1. exists t1. split. apply EMultiGood. apply H. apply nexist.
 apply H. unfold not. intros. assert (t0 = t2). inversion H4. apply thm3_5_4 with t1. apply H7. apply H0.
-subst. contradiction. unfold not. intros. destruct H4. inversion H0. inversion H0. apply nvstep with (nv:=nv) (t:=t2) in H0.
+subst. inversion H4. contradiction. unfold not. intros. destruct H4. inversion H0. inversion H0. apply nvstep with (nv:=nv) (t:=t2) in H0.
 apply H0. apply H4. inversion H0. Qed.

@@ -1,5 +1,4 @@
 Require Import Psatz.
-Require Import Classical.
 
 
 Inductive term : Type :=
@@ -75,6 +74,10 @@ Inductive multigoodstep: term -> term -> Prop :=
 Inductive normalstop: term -> Prop :=
 | nexist: forall t, NoWrong t -> (forall t1, not (goodstep t t1)) -> not (value t) -> normalstop t.
 
+Lemma multitrans: forall t1 t2 t3, multistep t1 t2 -> multistep t2 t3 -> multistep t1 t3.
+intros. generalize dependent t3. induction H. intros. apply H0. intros. apply IHmultistep in H1.
+apply Trans with t2. apply H. apply H1. Qed.
+
 Lemma nowrongnv: forall nv, nvalue nv -> NoWrong nv.
 intros. induction H. apply nw_O. apply nw_succ. apply IHnvalue. Qed.
 
@@ -87,13 +90,50 @@ Lemma thm3_5_4: forall t t1 t2, step t t1 -> step t t2 -> t1 = t2. Admitted.
 
 (* Lemma multistepexistsvalue: forall t, exists v, multistep t v /\ value v. Admitted. *)
 
-Lemma A4: forall t, normalstop t -> multistep t Wrong.
-intros. Admitted.
-
 Lemma nowrongorwrong: forall t, NoWrong t \/ not (NoWrong t).
 induction t. left. apply nw_true. left. apply nw_false. destruct IHt1. destruct IHt2. destruct IHt3.
-left. apply nw_if. apply H. apply H0. apply H1. right. unfold not. intros. inversion H2. contradiction. Admitted.
+left. apply nw_if. apply H. apply H0. apply H1. right. unfold not. intros. inversion H2. contradiction.
+right. unfold not; intros. inversion H1. contradiction. right; unfold not; intros. inversion H0. contradiction.
+left. apply nw_O. destruct IHt. left. apply nw_succ. apply H. right. unfold not; intros. inversion H0. contradiction.
+destruct IHt. left. apply nw_pred. apply H. right. unfold not. intros. inversion H0. contradiction.
+destruct IHt. left. apply nw_iszero. apply H. right. unfold not; intros. inversion H0; contradiction.
+right; unfold not. intros. inversion H. Qed.
 
+Lemma novalueorvalue: forall t, value t \/ not (value t).
+induction t. admit. admit. admit. admit. destruct IHt. destruct H. right. unfold not; intros.
+inversion H. inversion H0. inversion H3. admit. left. apply v_nv. apply nv_succ. apply H.
+admit. right. unfold not; intros. assert (value t). inversion H0. inversion H1. apply v_nv.
+apply H4. contradiction. admit. admit. left. apply v_wrong. Admitted.
+
+Lemma multiif: forall t t' t2 t3, multistep t t' -> multistep (If t t2 t3) (If t' t2 t3).
+intros. induction H. apply Refl. apply Trans with (If t0 t2 t3). apply EIf. apply H.
+apply IHmultistep. Qed.
+
+Lemma multisucc: forall t t', multistep t t' -> multistep (Succ t) (Succ t').
+intros. induction H. apply Refl. apply Trans with (Succ t2). apply ESucc. apply H.
+apply IHmultistep. Qed.
+
+Lemma A4: forall t, normalstop t -> multistep t Wrong.
+intros. destruct H. unfold not in H1. induction t. assert (value True). apply v_true. contradiction.
+assert (value False). apply v_false. contradiction. assert (forall t2, ~ goodstep t1 t2).
+intros. unfold not; intros. assert (goodstep (If t1 t2 t3) (If t0 t2 t3)). apply EGood.
+apply H. apply nw_if. inversion H2. inversion H. auto. inversion H. auto. inversion H; auto. apply EIf.
+inversion H2; auto. apply H0 in H3. apply H3. destruct t1. assert (goodstep (If True t2 t3) t2).
+apply EGood. apply H. inversion H; auto. apply EIfTrue. apply H0 in H3; contradiction.
+admit. inversion H. apply IHt1 in H6. apply multitrans with (If Wrong t2 t3). apply multiif. apply H6.
+apply Trans with Wrong. apply EIfWrong. apply bb_wrong. apply Refl.
+apply H2. intros. inversion H9. inversion H10. apply Trans with Wrong. apply EIfWrong. apply bb_nv.
+apply nv_zero. apply Refl. admit. admit. admit. admit. assert (value O). apply v_nv. apply nv_zero.
+contradiction. assert (forall t2, ~ goodstep t t2). intros. unfold not; intros.
+assert (goodstep (Succ t) (Succ t2)). apply EGood. apply H. apply nw_succ. inversion H2; auto.
+apply ESucc. inversion H2; auto. apply H0 in H3; auto. assert (~ (nvalue t)). unfold not; intros.
+assert (nvalue (Succ t)). apply nv_succ. apply H3. apply v_nv in H4. contradiction.
+assert ( (value t) \/ not (value t)). apply novalueorvalue. destruct H4.
+destruct H4. apply Trans with Wrong. apply ESuccWrong. apply bn_true. apply Refl. admit.
+contradiction. apply Trans with Wrong. apply ESuccWrong. apply bn_wrong. apply Refl.
+apply multitrans with (Succ Wrong). apply multisucc. apply IHt. inversion H; auto.
+apply H2. apply H4. apply Trans with Wrong. apply ESuccWrong. apply bn_wrong. apply Refl.
+admit. admit. apply Refl.
 
 Theorem thm3_5_16: forall t, NoWrong t -> ((exists u, multigoodstep t u /\ normalstop u) <-> (exists v, multistep t v /\ v = Wrong)).
 intros. split. intros. destruct H0. destruct H0. induction H0.

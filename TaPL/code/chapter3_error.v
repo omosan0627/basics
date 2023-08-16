@@ -100,10 +100,29 @@ destruct IHt. left. apply nw_iszero. apply H. right. unfold not; intros. inversi
 right; unfold not. intros. inversion H. Qed.
 
 Lemma novalueorvalue: forall t, value t \/ not (value t).
-induction t. admit. admit. admit. admit. destruct IHt. destruct H. right. unfold not; intros.
-inversion H. inversion H0. inversion H3. admit. left. apply v_nv. apply nv_succ. apply H.
-admit. right. unfold not; intros. assert (value t). inversion H0. inversion H1. apply v_nv.
-apply H4. contradiction. admit. admit. left. apply v_wrong. Admitted.
+induction t. left; apply v_true. left; apply v_false. right.
+unfold not; intros. inversion H. inversion H0. left. apply v_nv. apply nv_zero. destruct IHt. destruct H. right. unfold not; intros.
+inversion H. inversion H0. inversion H3. right.
+unfold not. intros. inversion H. inversion H0. inversion H3. left. apply v_nv. apply nv_succ. apply H.
+right; unfold not; intros.
+inversion H. inversion H0. inversion H3. right. unfold not; intros. assert (value t). inversion H0. inversion H1. apply v_nv.
+apply H4. contradiction.
+destruct IHt. destruct H.
+right; unfold not; intros. inversion H. inversion H0.
+right; unfold not; intros. inversion H. inversion H0.
+right; unfold not; intros. inversion H0. inversion H1.
+right; unfold not; intros. inversion H. inversion H0.
+
+right; unfold not; intros. inversion H0. inversion H1.
+
+destruct IHt. destruct H.
+right; unfold not; intros. inversion H. inversion H0.
+right; unfold not; intros. inversion H. inversion H0.
+right; unfold not; intros. inversion H0. inversion H1.
+right; unfold not; intros. inversion H. inversion H0.
+
+right; unfold not; intros. inversion H0. inversion H1.
+left. apply v_wrong. Qed.
 
 Lemma multiif: forall t t' t2 t3, multistep t t' -> multistep (If t t2 t3) (If t' t2 t3).
 intros. induction H. apply Refl. apply Trans with (If t0 t2 t3). apply EIf. apply H.
@@ -118,22 +137,52 @@ intros. destruct H. unfold not in H1. induction t. assert (value True). apply v_
 assert (value False). apply v_false. contradiction. assert (forall t2, ~ goodstep t1 t2).
 intros. unfold not; intros. assert (goodstep (If t1 t2 t3) (If t0 t2 t3)). apply EGood.
 apply H. apply nw_if. inversion H2. inversion H. auto. inversion H. auto. inversion H; auto. apply EIf.
-inversion H2; auto. apply H0 in H3. apply H3. destruct t1. assert (goodstep (If True t2 t3) t2).
-apply EGood. apply H. inversion H; auto. apply EIfTrue. apply H0 in H3; contradiction.
-admit. inversion H. apply IHt1 in H6. apply multitrans with (If Wrong t2 t3). apply multiif. apply H6.
+inversion H2; auto. apply H0 in H3. apply H3. destruct t1. 
+assert (goodstep (If True t2 t3) t2). apply EGood. apply H. inversion H; auto. apply EIfTrue. 
+apply H0 in H3; contradiction.
+assert (goodstep (If False t2 t3) t3). apply EGood. apply H. inversion H; auto. apply EIfFalse. 
+apply H0 in H3; contradiction.
+
+inversion H. apply IHt1 in H6. apply multitrans with (If Wrong t2 t3). apply multiif. apply H6.
 apply Trans with Wrong. apply EIfWrong. apply bb_wrong. apply Refl.
-apply H2. intros. inversion H9. inversion H10. apply Trans with Wrong. apply EIfWrong. apply bb_nv.
-apply nv_zero. apply Refl. admit. admit. admit. admit. assert (value O). apply v_nv. apply nv_zero.
-contradiction. assert (forall t2, ~ goodstep t t2). intros. unfold not; intros.
+apply H2. intros. inversion H9. inversion H10. 
+apply Trans with Wrong. apply EIfWrong. apply bb_nv. apply nv_zero. 
+apply Refl.
+
+admit. 
+admit. 
+admit.
+
+apply Trans with Wrong. apply EIfWrong. apply bb_wrong. apply Refl.
+assert (value O). apply v_nv. apply nv_zero.
+contradiction. 
+assert (forall t2, ~ goodstep t t2). intros. unfold not; intros.
 assert (goodstep (Succ t) (Succ t2)). apply EGood. apply H. apply nw_succ. inversion H2; auto.
-apply ESucc. inversion H2; auto. apply H0 in H3; auto. assert (~ (nvalue t)). unfold not; intros.
+apply ESucc. inversion H2; auto. apply H0 in H3; auto. 
+assert (~ (nvalue t)). unfold not; intros.
 assert (nvalue (Succ t)). apply nv_succ. apply H3. apply v_nv in H4. contradiction.
 assert ( (value t) \/ not (value t)). apply novalueorvalue. destruct H4.
-destruct H4. apply Trans with Wrong. apply ESuccWrong. apply bn_true. apply Refl. admit.
+destruct H4. 
+apply Trans with Wrong. apply ESuccWrong. apply bn_true. apply Refl.
+apply Trans with Wrong. apply ESuccWrong. apply bn_false. apply Refl.
 contradiction. apply Trans with Wrong. apply ESuccWrong. apply bn_wrong. apply Refl.
 apply multitrans with (Succ Wrong). apply multisucc. apply IHt. inversion H; auto.
 apply H2. apply H4. apply Trans with Wrong. apply ESuccWrong. apply bn_wrong. apply Refl.
-admit. admit. apply Refl.
+
+assert (forall t2, ~ goodstep t t2). intros. unfold not; intros.
+assert (goodstep (Pred t) (Pred t2)). apply EGood. apply H. apply nw_pred. inversion H2; auto.
+apply EPred. inversion H2; auto. apply H0 in H3; auto. 
+assert (~ (nvalue t)). unfold not; intros.
+assert (nvalue (Pred t)). apply nv_pred. apply H3. apply v_nv in H4. contradiction.
+assert ( (value t) \/ not (value t)). apply novalueorvalue. destruct H4.
+destruct H4. 
+apply Trans with Wrong. apply ESuccWrong. apply bn_true. apply Refl.
+apply Trans with Wrong. apply ESuccWrong. apply bn_false. apply Refl.
+contradiction. apply Trans with Wrong. apply ESuccWrong. apply bn_wrong. apply Refl.
+apply multitrans with (Succ Wrong). apply multisucc. apply IHt. inversion H; auto.
+apply H2. apply H4. apply Trans with Wrong. apply ESuccWrong. apply bn_wrong. apply Refl.
+
+admit. apply Refl.
 
 Theorem thm3_5_16: forall t, NoWrong t -> ((exists u, multigoodstep t u /\ normalstop u) <-> (exists v, multistep t v /\ v = Wrong)).
 intros. split. intros. destruct H0. destruct H0. induction H0.

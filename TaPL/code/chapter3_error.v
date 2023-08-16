@@ -45,10 +45,10 @@ Inductive step: term -> term-> Prop :=
   | EIf: forall t1 t1' t2 t3, (step t1 t1') -> (step (If t1 t2 t3) (If t1' t2 t3))
   | ESucc: forall t1 t1', step t1 t1' -> step (Succ t1) (Succ t1')
   | EPredZero: step (Pred O) O
-  | EPredSucc: forall nv, step (Pred (Succ nv)) nv
+  | EPredSucc: forall nv, nvalue nv -> step (Pred (Succ nv)) nv
   | EPred: forall t1 t1', step t1 t1' -> step (Pred t1) (Pred t1')
   | EIsZeroZero: step (Iszero O) True
-  | EIsZeroSucc: forall nv, step (Iszero (Succ nv)) False
+  | EIsZeroSucc: forall nv, nvalue nv -> step (Iszero (Succ nv)) False
   | EIsZero: forall t1 t1', step t1 t1' -> step (Iszero t1) (Iszero t1')
 
   | EIfWrong: forall t1 t2 t3, badbool t1 -> step (If t1 t2 t3) Wrong
@@ -86,7 +86,27 @@ intros. generalize dependent t. induction H. intros. inversion H0. intros.
 inversion H0. subst. apply IHnvalue in H2.  auto. subst. inversion H2. subst.
 inversion H. subst. inversion H. subst. inversion H. Qed.
 
-Lemma thm3_5_4: forall t t1 t2, step t t1 -> step t t2 -> t1 = t2. Admitted.
+Lemma thm3_5_4: forall t t1 t2, step t t1 -> step t t2 -> t1 = t2.
+intros. generalize dependent t2. induction H.
+intros. inversion H0. subst. reflexivity. subst. inversion H4. inversion H4. inversion H5.
+intros. inversion H0. subst. reflexivity. subst. inversion H4. inversion H4. inversion H5.
+intros. inversion H0. subst. inversion H. subst. inversion H. subst. apply IHstep in H5. subst.
+reflexivity. subst. inversion H5. subst. destruct H5. inversion H. 
+apply nvstep with (nv:=nv) (t:=t1') in H1. contradiction. subst. 
+apply nvstep with (t:=t1') (nv:=t1) in H. contradiction. apply H1.
+
+intros. inversion H0. subst. apply IHstep in H2. subst. reflexivity. subst.
+inversion H2. subst. inversion H. subst. inversion H. subst. inversion H.
+
+intros. inversion H0. reflexivity. subst. inversion H1. subst. inversion H1.
+intros. inversion H0. reflexivity. subst. apply nvstep with (nv:=Succ nv) (t:=t1') in H2.
+contradiction. apply nv_succ. apply H. subst. inversion H2.
+
+intros. inversion H0. subst. inversion H. subst. apply nvstep with (nv:=Succ t2) (t:=t1') in H.
+contradiction. apply nv_succ. apply H2. subst. apply IHstep in H2. subst. reflexivity.
+subst. inversion H2. subst. inversion H. subst. inversion H. subst. inversion H.
+Admitted.
+
 
 (* Lemma multistepexistsvalue: forall t, exists v, multistep t v /\ value v. Admitted. *)
 
@@ -183,7 +203,7 @@ assert (nvalue t1 \/ not (nvalue t1)). apply nonvalueornvalue. destruct H3.
 destruct H3. assert (goodstep (Iszero O) True). apply EGood. apply nw_iszero. apply nw_O.
 apply nw_true. apply EIsZeroZero. apply H2 in H3. contradiction.
 assert (goodstep (Iszero (Succ nv)) False). apply EGood. inversion H; auto. apply nw_false.
-apply EIsZeroSucc. apply H2 in H4; contradiction.
+apply EIsZeroSucc. apply H3. apply H2 in H4; contradiction.
 
 apply multitrans with (If Wrong t2 t3). apply multiif. apply IHt1. inversion H. apply H7.
 apply H2. intros. inversion H4. inversion H5. apply Trans with Wrong. apply EIfWrong.
@@ -214,7 +234,7 @@ apply Trans with Wrong. apply EPredWrong. apply bn_true. apply Refl.
 apply Trans with Wrong. apply EPredWrong. apply bn_false. apply Refl.
 destruct H3. assert (goodstep (Pred O) O). apply EGood. apply H. apply nw_O. apply EPredZero.
 apply H0 in H3. contradiction. assert (goodstep (Pred (Succ nv)) nv). apply EGood.
-apply H. inversion H. inversion H5. apply H7. apply EPredSucc. apply H0 in H4. contradiction.
+apply H. inversion H. inversion H5. apply H7. apply EPredSucc. apply H3. apply H0 in H4. contradiction.
 apply Trans with Wrong. apply EPredWrong. apply bn_wrong. apply Refl.
 apply multitrans with (Pred Wrong). apply multipred. apply IHt. inversion H. apply H5.
 apply H2. apply H3. apply Trans with Wrong. apply EPredWrong. apply bn_wrong. apply Refl.
@@ -228,7 +248,7 @@ apply Trans with Wrong. apply EIsZeroWrong. apply bn_true. apply Refl.
 apply Trans with Wrong. apply EIsZeroWrong. apply bn_false. apply Refl.
 destruct H3. assert (goodstep (Iszero O) True). apply EGood. apply H. apply nw_true. apply EIsZeroZero.
 apply H0 in H3. contradiction. assert (goodstep (Iszero (Succ nv)) False). apply EGood.
-apply H. apply nw_false. apply EIsZeroSucc. apply H0 in H4. contradiction.
+apply H. apply nw_false. apply EIsZeroSucc. apply H3. apply H0 in H4. contradiction.
 apply Trans with Wrong. apply EIsZeroWrong. apply bn_wrong. apply Refl.
 apply multitrans with (Iszero Wrong). apply multiiszero. apply IHt. inversion H. apply H5.
 apply H2. apply H3. apply Trans with Wrong. apply EIsZeroWrong. apply bn_wrong. apply Refl.

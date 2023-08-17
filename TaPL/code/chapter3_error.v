@@ -71,6 +71,16 @@ Inductive multigoodstep: term -> term -> Prop :=
 Inductive normalstop: term -> Prop :=
 | nexist: forall t, NoWrong t -> (forall t1, not (goodstep t t1)) -> not (value t) -> normalstop t.
 
+Inductive bigstep: term -> term -> Prop :=
+  | BValue: forall v, value v -> bigstep v v
+  | BIfTrue: forall t1 t2 t3 v2, value v2 -> bigstep t1 True -> bigstep t2 v2 -> bigstep (If t1 t2 t3) v2
+  | BIfFalse: forall t1 t2 t3 v3, value v3 -> bigstep t1 False -> bigstep t3 v3 -> bigstep (If t1 t2 t3) v3
+  | BSucc: forall t1 nv1, nvalue nv1 -> bigstep t1 nv1 -> bigstep (Succ t1) (Succ nv1)
+  | BPredZero: forall t1, bigstep t1 O -> bigstep (Pred t1) O
+  | BPredSucc: forall t1 nv1, nvalue nv1 -> bigstep t1 (Succ nv1) -> bigstep (Pred t1) nv1
+  | BIsZeroZero: forall t1, bigstep t1 O -> bigstep (Iszero t1) True
+  | BIsZeroSucc: forall t1 nv1, nvalue nv1 -> bigstep t1 (Succ nv1) -> bigstep (Iszero t1) False.
+
 Lemma multitrans: forall t1 t2 t3, multistep t1 t2 -> multistep t2 t3 -> multistep t1 t3.
 intros. generalize dependent t3. induction H. intros. apply H0. intros. apply IHmultistep in H1.
 apply Trans with t2. apply H. apply H1. Qed.
@@ -82,6 +92,8 @@ Lemma nvstep: forall nv t, nvalue nv -> not (step nv t). unfold not.
 intros. generalize dependent t. induction H. intros. inversion H0. intros.
 inversion H0. subst. apply IHnvalue in H2.  auto. subst. inversion H2. subst.
 inversion H. subst. inversion H. subst. inversion H. Qed.
+
+
 
 Lemma thm3_5_4: forall t t1 t2, step t t1 -> step t t2 -> t1 = t2.
 intros. generalize dependent t2. induction H.
@@ -126,9 +138,6 @@ inversion H2. subst. inversion H2. subst. inversion H2. reflexivity.
 intros. inversion H0. subst. inversion H. subst. inversion H. subst. inversion H. subst.
 inversion H2. subst. inversion H2. subst. inversion H2. reflexivity.
 Qed.
-
-
-(* Lemma multistepexistsvalue: forall t, exists v, multistep t v /\ value v. Admitted. *)
 
 Lemma nowrongorwrong: forall t, NoWrong t \/ not (NoWrong t).
 induction t. left. apply nw_true. left. apply nw_false. destruct IHt1. destruct IHt2. destruct IHt3.
@@ -286,3 +295,29 @@ apply H. apply H4. apply H0. apply H3. apply H5. apply H1. exists t1. split. app
 apply H. unfold not. intros. assert (t0 = t2). inversion H4. apply thm3_5_4 with t1. apply H7. apply H0.
 subst. inversion H4. contradiction. unfold not. intros. destruct H4. inversion H0. inversion H0. apply nvstep with (nv:=nv) (t:=t2) in H0.
 apply H0. apply H4. inversion H0. Qed.
+
+Theorem thm3_5_18: forall t v, value v -> (bigstep t v <-> multistep t v).
+intros. split. intros. induction H0.
+apply Refl. 
+assert (value True). apply v_true. apply IHbigstep1 in H1. apply IHbigstep2 in H0.
+apply multitrans with (If True t2 t3). apply multiif. apply H1. apply Trans with t2.
+apply EIfTrue. apply H0.
+assert (value False). apply v_false. apply IHbigstep1 in H1. apply IHbigstep2 in H0.
+apply multitrans with (If False t2 t3). apply multiif. apply H1. apply Trans with t3.
+apply EIfFalse. apply H0.
+apply multisucc. apply IHbigstep. apply v_nv. apply H0.
+apply multitrans with (Pred O). apply multipred. apply IHbigstep. apply v_nv. apply nv_zero.
+apply Trans with O. apply EPredZero. apply Refl.
+apply multitrans with (Pred (Succ nv1)). apply multipred. apply IHbigstep. apply v_nv. apply nv_succ. apply H0.
+apply Trans with nv1. apply EPredSucc. apply H0. apply Refl.
+apply multitrans with (Iszero O). apply multiiszero. apply IHbigstep. apply v_nv. apply nv_zero.
+apply Trans with True. apply EIsZeroZero. apply Refl.
+apply multitrans with (Iszero (Succ nv1)). apply multiiszero. apply IHbigstep. apply v_nv. apply nv_succ.
+apply H0. apply Trans with False. apply EIsZeroSucc. apply H0. apply Refl.
+
+intros. induction H0.
+apply BValue. apply H. destruct H0. 
+apply BIfTrue. apply H. apply BValue. apply v_true. apply IHmultistep. apply H.
+apply BIfFalse. apply H. apply BValue. apply v_false. apply IHmultistep. apply H.
+Admitted.
+

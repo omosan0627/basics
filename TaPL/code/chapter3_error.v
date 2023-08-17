@@ -1,6 +1,3 @@
-Require Import Psatz.
-
-
 Inductive term : Type :=
   | True: term
   | False: term
@@ -105,7 +102,30 @@ contradiction. apply nv_succ. apply H. subst. inversion H2.
 intros. inversion H0. subst. inversion H. subst. apply nvstep with (nv:=Succ t2) (t:=t1') in H.
 contradiction. apply nv_succ. apply H2. subst. apply IHstep in H2. subst. reflexivity.
 subst. inversion H2. subst. inversion H. subst. inversion H. subst. inversion H.
-Admitted.
+
+intros. inversion H0. reflexivity. inversion H1. inversion H1.
+intros. inversion H0. reflexivity. assert (nvalue (Succ nv)). apply nv_succ. apply H.
+apply nvstep with (nv:=Succ nv) (t:=t1') in H4. contradiction.
+inversion H2.
+
+intros. inversion H0. subst. inversion H. subst. assert (nvalue (Succ nv)). apply nv_succ.
+apply H2. apply nvstep with (nv:=Succ nv) (t:=t1') in H. contradiction.
+apply H1. apply IHstep in H2. subst. reflexivity. subst. inversion H2. subst. inversion H.
+subst. inversion H. subst. inversion H.
+
+intros. inversion H0. subst. inversion H. inversion H1. subst. inversion H. inversion H1.
+subst. inversion H. subst. inversion H5. apply nvstep with (nv:=t1) (t:=t1') in H1.
+contradiction. reflexivity.
+
+intros. inversion H0. subst. inversion H. subst. inversion H2. subst. inversion H2. subst.
+inversion H2. reflexivity.
+
+intros. inversion H0. subst. inversion H. subst. inversion H. subst. inversion H. subst.
+inversion H2. subst. inversion H2. subst. inversion H2. reflexivity.
+
+intros. inversion H0. subst. inversion H. subst. inversion H. subst. inversion H. subst.
+inversion H2. subst. inversion H2. subst. inversion H2. reflexivity.
+Qed.
 
 
 (* Lemma multistepexistsvalue: forall t, exists v, multistep t v /\ value v. Admitted. *)

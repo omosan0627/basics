@@ -92,21 +92,40 @@ split. intros. destruct H. induction H. apply Refl. apply Trans with t2. apply H
 intros. induction H. exists 0. apply NRefl. destruct IHmultistep. exists (S x).
 apply NTrans with t2. apply H. apply H1. Qed. 
 
+
+Lemma A8num: forall t1 t2 t3 v n, value v -> multinumstep (If t1 t2 t3) v (S n) ->
+(exists n1 n2, multinumstep t1 True n1 /\ multinumstep t2 v n2 /\ n1 + n2 = n) \/
+(exists n1 n2, multinumstep t1 False n1 /\ multinumstep t3 v n2 /\ n1 + n2 = n) \/
+v = Wrong.
+
+intros. generalize dependent v. generalize dependent t1. generalize dependent t2.
+generalize dependent t3. induction n. intros. inversion H0. subst.
+inversion H5. subst. inversion H2. subst. left. exists 0. exists 0.
+split. apply NRefl. split. apply NRefl. simpl. reflexivity.
+subst. right. left. exists 0. exists 0. split. apply NRefl. split. apply NRefl.
+simpl. reflexivity. subst. inversion H. inversion H1. subst. right; right.
+reflexivity. intros. inversion H0. subst. inversion H2. subst. left.
+exists 0. exists (S n). split. apply NRefl. split. apply H5. lia.
+right. left. exists 0. exists (S n). split. apply NRefl. split. apply H5. lia.
+subst. apply IHn in H5. destruct H5. destruct H1. destruct H1. destruct H1.
+destruct H3. left. exists (S x). exists x0. split. apply NTrans with (t1').
+apply H7. apply H1. split. apply H3. simpl. subst. reflexivity.
+destruct H1. destruct H1. destruct H1. destruct H1. destruct H3.
+right. left. exists (S x). exists x0. split. apply NTrans with t1'.
+apply H7. apply H1. split. apply H3. simpl. subst. reflexivity. 
+right. right. subst. reflexivity. apply H. subst. right. right.
+assert (multistep Wrong v). apply MequalNM. exists (S n). apply H5.
+inversion H1. reflexivity. inversion H3. Qed.
+
 Lemma A8: forall t1 t2 t3 v, value v -> multistep (If t1 t2 t3) v -> 
 (multistep t1 True /\ multistep t2 v) \/ (multistep t1 False /\ multistep t3 v) \/ v = Wrong.
-intros. apply MequalNM in H0. destruct H0.
-generalize dependent v. generalize dependent t1. generalize dependent t2. generalize dependent t3.
-induction x. intros. inversion H0. subst. inversion H. inversion H1.
-intros. inversion H0. subst. inversion H2. subst. admit. admit. subst.
-assert ((multistep t1' True /\ multistep t2 v) \/ (multistep t1' False /\ multistep t3 v) \/ v = Wrong).
-apply IHx. apply H. apply H5. destruct H1. destruct H1. assert (multistep (If t1' t2 t3) v).
-apply MequalNM. exists x. apply H5. left. split. apply Trans with t1'. apply H7. apply H1.
-apply H3. destruct H1. destruct H1. assert (multistep (If t1' t2 t3) v). apply MequalNM. exists x. apply H5.
-right. left. split. apply Trans with t1'. apply H7. apply H1. apply H3. right. right. apply H1.
-subst. assert (multistep Wrong v). apply MequalNM. exists x; apply H5. inversion H1. right. right. reflexivity.
-inversion H3. Admitted.
-
-
+intros. apply MequalNM in H0. destruct H0. destruct x. inversion H0. subst. inversion H.
+inversion H1. apply A8num in H0. destruct H0. destruct H0. destruct H0. destruct H0.
+destruct H1. left. split. apply MequalNM. exists x0. apply H0. apply MequalNM. exists x1.
+apply H1. 
+destruct H0. destruct H0. destruct H0. destruct H0.
+destruct H1. right. left. split. apply MequalNM. exists x0. apply H0. apply MequalNM. exists x1.
+apply H1. right. right. subst. reflexivity. apply H. Qed.
 
 (* Inductive bignumstep: term -> term -> nat -> Prop :=
   | BNValue: forall v, value v -> bignumstep v v 0
@@ -360,6 +379,19 @@ apply H. unfold not. intros. assert (t0 = t2). inversion H4. apply thm3_5_4 with
 subst. inversion H4. contradiction. unfold not. intros. destruct H4. inversion H0. inversion H0. apply nvstep with (nv:=nv) (t:=t2) in H0.
 apply H0. apply H4. inversion H0. Qed.
 
+Lemma A8prednum: forall t v n, value v -> multinumstep (Pred t) v (S n) ->
+(multinumstep t O n /\ v = O) \/ (exists nv, nvalue nv /\ multinumstep t (Succ nv) n /\ v = nv)
+\/ v = Wrong.
+intros. generalize dependent t. generalize dependent v. induction n.
+intros. inversion H0. subst. inversion H5. subst. inversion H.
+subst. inversion H2. inversion H3. subst. inversion H2. inversion H3. subst.
+inversion H2. subst. left. split. apply NRefl. reflexivity.
+subst. right. left. exists v. split. apply H4. split. apply NRefl. reflexivity.
+subst. inversion H. inversion H3. subst. inversion H1. subst. right. right. reflexivity.
+intros.
+inversion H0. inversion H2. subst. inversion H5. inversion H3.
+subst. inversion H2. subst. 
+
 Theorem thm3_5_18: forall t v, value v -> (bigstep t v <-> multistep t v).
 intros. split. intros. induction H0.
 apply Refl. 
@@ -389,9 +421,28 @@ intros. destruct t.
 inversion H1. apply BValue. subst. apply H. subst. inversion H2.
 inversion H1. apply BValue. subst. apply H. subst. inversion H2.
 
+inversion H1. subst. inversion H. inversion H2. subst.
+apply A8num in H1. destruct H1. destruct H1. destruct H1. destruct H1. destruct H4.
+assert (bigstep t1 True). apply IHy with x. lia. apply v_true. apply H1. 
+assert (bigstep t2 v). apply IHy with x0. lia. apply H. apply H4. apply BIfTrue.
+apply H. apply H6. apply H7. 
+destruct H1. destruct H1. destruct H1. destruct H1. destruct H4.
+assert (bigstep t1 False). apply IHy with x. lia. apply v_false. apply H1. 
+assert (bigstep t3 v). apply IHy with x0. lia. apply H. apply H4. apply BIfFalse.
+apply H. apply H6. apply H7. subst. admit. apply H.
 
+inversion H1. subst. apply BValue. apply v_nv. apply nv_zero. inversion H2.
+admit.
 
-intros. inversion H0. apply BValue. apply H. intros. destruct t.
+inversion H1. subst. apply BValue. apply H. 
+subst. assert (multistep (Succ t) v). apply MequalNM. exists (S n). apply H1.
+apply succtovalue in H4. destruct H4. destruct H4.
+inversion H4. subst. assert (O=O). reflexivity. contradiction. subst.
+apply BSucc. apply H6. apply IHy with n. lia. apply v_nv. apply H6.
+inversion H1. subst.
+ inversion H1. subst.
+
+ apply BValue. apply H. intros. destruct t.
 inversion H0. subst. inversion H2.
 inversion H0. subst. inversion H2.
 assert (multistep (If t1 t2 t3) v). apply MequalNM. exists (S x). apply H0.

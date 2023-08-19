@@ -25,11 +25,6 @@ Inductive step: term -> term-> Prop :=
   | EIfFalse: forall t2 t3, step (If False t2 t3) t3
   | EIf: forall t1 t1' t2 t3, (step t1 t1') -> (step (If t1 t2 t3) (If t1' t2 t3)).
 
-Lemma reduce_depth: forall t1 t2, step t1 t2 -> size t1 > size t2.
-intros. induction H. simpl. lia. simpl. lia. simpl. lia. Qed.
-
-Lemma no_step: forall t, not (step t t). unfold not.
-intros. apply reduce_depth in H. lia. Qed.
 Inductive normal: term -> Prop :=
 | nexist: forall t, (forall t1, not (step t t1)) -> normal t.
 
@@ -58,7 +53,6 @@ intros. inversion H0. subst. reflexivity. inversion H4.
 intros. inversion H0. subst. inversion H. subst. inversion H.  subst.
 apply IHstep in H5. subst. reflexivity. 
 Qed.  
-
 
 Inductive multistep: term->term->Prop:=
   | Init: forall t1 t2, step t1 t2 -> multistep t1 t2

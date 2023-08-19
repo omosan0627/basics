@@ -86,6 +86,10 @@ Inductive bigstep: term -> term -> Prop :=
   | BPredSucc: forall t1 nv1, nvalue nv1 -> bigstep t1 (Succ nv1) -> bigstep (Pred t1) nv1
   | BIsZeroZero: forall t1, bigstep t1 O -> bigstep (Iszero t1) True
   | BIsZeroSucc: forall t1 nv1, nvalue nv1 -> bigstep t1 (Succ nv1) -> bigstep (Iszero t1) False.
+  | BIfWrong: forall t1 t2 t3 t, badbool t -> bigstep t1 t -> bigstep (If t1 t2 t3) Wrong
+  | BSuccWrong: forall t1 t, badnat t -> bigstep t1 t -> bigstep (Succ t1) Wrong
+  | BPredWrong: forall t1 t, badnat t -> bigstep t1 t -> bigstep (Pred t1) Wrong
+
 
 Lemma MequalNM: forall t1 t2, (exists n, multinumstep t1 t2 n) <-> multistep t1 t2.
 split. intros. destruct H. induction H. apply Refl. apply Trans with t2. apply H. apply IHmultinumstep.
@@ -379,7 +383,7 @@ apply H. unfold not. intros. assert (t0 = t2). inversion H4. apply thm3_5_4 with
 subst. inversion H4. contradiction. unfold not. intros. destruct H4. inversion H0. inversion H0. apply nvstep with (nv:=nv) (t:=t2) in H0.
 apply H0. apply H4. inversion H0. Qed.
 
-Lemma A8prednum: forall t v n, value v -> multinumstep (Pred t) v (S n) ->
+(* Lemma A8prednum: forall t v n, value v -> multinumstep (Pred t) v (S n) ->
 (multinumstep t O n /\ v = O) \/ (exists nv, nvalue nv /\ multinumstep t (Succ nv) n /\ v = nv)
 \/ v = Wrong.
 intros. generalize dependent t. generalize dependent v. induction n.
@@ -390,7 +394,32 @@ subst. right. left. exists v. split. apply H4. split. apply NRefl. reflexivity.
 subst. inversion H. inversion H3. subst. inversion H1. subst. right. right. reflexivity.
 intros.
 inversion H0. inversion H2. subst. inversion H5. inversion H3.
-subst. inversion H2. subst. 
+subst. Admitted. *)
+
+Lemma bigsteptrans: forall t1 t2 t3, step t1 t2 -> bigstep t2 t3 -> bigstep t1 t3.
+intros. generalize dependent t3. induction H.
+intros. apply BIfTrue. admit. apply BValue. apply v_true. apply H0.
+intros. apply BIfFalse. admit. apply BValue. apply v_false. apply H0.
+intros. inversion H0. subst. inversion H0. inversion H2. inversion H4. subst. inversion H1. inversion H2.
+inversion H5. inversion H9. subst. apply BIfTrue. apply H4. apply IHstep in H6. apply H6. apply H7.
+subst. apply BIfFalse. apply H4. apply IHstep in H6. apply H6. apply H7.
+intros. inversion H0. subst. apply BSucc. inversion H1. inversion H2. apply H5.
+assert (bigstep t1' t1'). apply BValue. apply v_nv. inversion H1. inversion H2. apply H5.
+apply IHstep in H2. apply H2. subst. apply BSucc. apply H2. apply IHstep. apply H3.
+intros. inversion H0. apply BPredZero. apply BValue. apply H.
+intros. inversion H; subst.
+inversion H0. subst. apply BPredSucc. apply nv_zero. apply BSucc. apply H. apply H0.
+inversion H0. subst. apply BPredSucc. apply H. apply BValue. apply v_nv. apply nv_succ. apply H.
+apply BPredSucc. apply nv_succ. apply H3. apply BSucc. apply nv_succ. apply H3. apply BSucc. apply H3.
+apply H4.
+intros. inversion H0. subst. inversion H1. inversion H2. subst. apply BPredZero.
+apply IHstep. apply H2. subst. apply BPredSucc. apply H2. apply IHstep. apply H3.
+intros. inversion H0. subst. apply BIsZeroZero. apply BValue. apply v_nv. apply nv_zero.
+intros. inversion H0. subst. apply BIsZeroSucc with (nv1:=nv). apply H. apply BValue.
+apply v_nv. apply nv_succ. apply H.
+intros. inversion H0. inversion H1. inversion H4. subst. apply BIsZeroZero.
+apply IHstep. apply H2. subst. apply BIsZeroSucc with (nv1:=nv1). apply H2. apply IHstep. apply H3.
+intros.
 
 Theorem thm3_5_18: forall t v, value v -> (bigstep t v <-> multistep t v).
 intros. split. intros. induction H0.
@@ -432,7 +461,6 @@ assert (bigstep t3 v). apply IHy with x0. lia. apply H. apply H4. apply BIfFalse
 apply H. apply H6. apply H7. subst. admit. apply H.
 
 inversion H1. subst. apply BValue. apply v_nv. apply nv_zero. inversion H2.
-admit.
 
 inversion H1. subst. apply BValue. apply H. 
 subst. assert (multistep (Succ t) v). apply MequalNM. exists (S n). apply H1.

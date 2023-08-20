@@ -1,5 +1,3 @@
-Require Import Psatz.
-
 Inductive term : Type :=
   | True: term
   | False: term

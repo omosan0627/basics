@@ -1,5 +1,3 @@
-Require Import Psatz.
-
 Inductive term : Type :=
   | True: term
   | False: term
@@ -110,8 +108,8 @@ split. apply NRefl. split. apply NRefl. simpl. reflexivity.
 subst. right. left. exists 0. exists 0. split. apply NRefl. split. apply NRefl.
 simpl. reflexivity. subst. inversion H. inversion H1. subst. right; right.
 reflexivity. intros. inversion H0. subst. inversion H2. subst. left.
-exists 0. exists (S n). split. apply NRefl. split. apply H5. lia.
-right. left. exists 0. exists (S n). split. apply NRefl. split. apply H5. lia.
+exists 0. exists (S n). split. apply NRefl. split. apply H5. simpl. reflexivity.
+right. left. exists 0. exists (S n). split. apply NRefl. split. apply H5. simpl. reflexivity.
 subst. apply IHn in H5. destruct H5. destruct H1. destruct H1. destruct H1.
 destruct H3. left. exists (S x). exists x0. split. apply NTrans with (t1').
 apply H7. apply H1. split. apply H3. simpl. subst. reflexivity.

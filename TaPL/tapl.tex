@@ -69,20 +69,115 @@ $P(s)$が証明できる」ならば、全ての$s$に対して$P(s)$が成立�
 1ステップ評価で到達できる項の関係. これも推論規則から定義できます. \\
 停止尺度: 評価の停止性の証明で使われる関数のこと. 項について単調減少.
 構文要素ってなんだ?
-\section*{型無しラムダ計算}
+\section*{5型無しラムダ計算}
 \subsection*{基礎}
 一般的な手続き、関数を引数に値を渡すことで具体化する. \\
 ラムダ計算: 全てが関数. 変数、ラムダ抽象、関数適用の3種類の項のみで構成.
 \subsection*{抽象構文}
 具象構文: プログラマが直接読み書きする文字列
 抽象構文: 単純な内部的表現. ラベル付き木(抽象構文木AST)として表現される.\\
-字句解析器: 文字列->トークン列\\
-構文解析器: トークン列->抽象構文木\\
+字句解析器: 文字列$\rightarrow$トークン列\\
+構文解析器: トークン列$\rightarrow$抽象構文木\\
 優先順位や結合法則を決めておくと、括弧を減らせる。\\
 本書では抽象構文木を念頭に置くが、関数適用は左結合、ラムダ抽象の本体はできるだけ右に展開する.\\
 $\lambda x. \lambda y. x y x$は$(\lambda x. (\lambda y. (x y))) x$と解釈することができるが、
 $\lambda x. (\lambda y. ((x y) x))$と解釈することにする。 \\
 変数とメタ変数の違いをここからは意識する必要がある. ただ文脈から大体わかるね.
 \subsection*{スコープ}
+抽象$\lambda x. t$の本体$t$の中に変数$x$が現れるとき、その$x$の出現は束縛されているという.
+$x$を囲む抽象によって束縛されていない所に$x$が現れるとき、その$x$の出現は自由であるという.\\
+自由変数のない項は閉じているという. 閉じた項はコンビネータとも呼ばれる.
+\subsection*{操作的意味論}
+純粋なラムダ計算において「計算」が意味するのはただ一つ、引数に対する関数の適用である.
+\begin{center}
+    $(\lambda x. t_{12})\ t_2 \rightarrow [x \mapsto t_2] t_{12}$
+\end{center}
+ここで$[x \mapsto t_2] t_{12}$は「$t_{12}$の中の$x$の自由な出現をすべて$t_2$で置き換えることに
+よって得られる項」を意味する. 例えば$(\lambda x. x (\lambda x. x))(u\ r)$は
+$(u\ r) (\lambda x. x)$と評価される.\\
+$(\lambda x. t_{12})\ t_2$ を簡約基(reducible expression)と言い、上記の規則で
+簡約基を書き換える操作のことをベータ簡約と呼ぶ.\\
+評価戦略:
+\begin{itemize}
+    \item 完全ベータ簡約: 任意の簡約基がいつでも簡約されうる.
+    \item 正規順序戦略: 最も左で最も外側の簡約基が最初に簡約される.
+    \item 名前呼び戦略: 正規順序戦略+抽象の内部での簡約を許さない.
+    \item 値呼び戦略: 最も左で外側の簡約基を簡約するのだが、右側が既に値に簡約されている簡約基のみだけを簡約する. 
+    この本の戦略.
+\end{itemize}
+純粋なラムダ計算については$\lambda$、ブール値算術式を伴う拡張された体系に対しては$\lambda NB$を用いる.
+\subsection*{形式的議論}
+第3章と同じく、項を定義する抽象構文は、帰納的に定義された抽象構文木の集合に対する
+簡易的な表記として行う.
+
+\subsection*{代入}
+第6章のde Bruijn表現とは別の定義を使う。次のように定義すればよい.
+\begin{align*}
+    [x \mapsto s] x  &= s \\
+    [x \mapsto s] y  &= y \\
+    [x \mapsto s] (\lambda y. t_1)    &= 
+    \begin{cases}
+        \lambda y. t_1 & (y=x)\\
+        \lambda y. [x \mapsto s]t_1 & (y \neq x \land y \neq FV(s))
+    \end{cases}\\
+    [x \mapsto s](t_1 t_2) &= ([x \mapsto s]t_1) ([x \mapsto s]t_2)
+\end{align*}
+ただ、$y \neq x \land y \neq FV(s)$の場合で、代入が部分的になってしまっていることがわかる。
+なのでアルファ変換で$t_1$で自由変数である$y$を$s$でも$t_1$でも現れない変数に置き換えてあげれば良い。
+\subsection*{操作的意味論}
+値がラムダ抽象値であることに注意.
+
+\section*{6項の名無し表現}
+アルファ変換は新しい変数名を与える事によって代入の問題を解決したが、それを決める際にバグを埋め込んでしまう
+可能性もある. 実際ちゃんと停止することが保証できる代入をアルファ変換を使って実装するのは難しそう. 
+なので変数、項、抽象の標準形を考えることにする。
+\subsection*{項と文脈}
+変数がそれを囲む$k$番目の$\lambda$によって束縛されているとき、変数名を$k$に置き換える.
+これをde Bruijnインデックスや、静的距離という言葉で表現する.
+例えば$\lambda m. \lambda n. \lambda s. \lambda z. m s (n s z)$は
+$\lambda. \lambda. \lambda. \lambda. 3 1 (2 1 0)$となる.
+
+\begin{definition}[項]
+    $\mathcal{T}$を、
+    以下の条件を満たす集合の最小の族$\{\mathcal{T}_0, \mathcal{T}_1,...\}$とする.
+    \begin{enumerate}
+        \item $ 0 \leq k < n$ならば$k \in \mathcal{T}_n$
+        \item $t_1 \in \mathcal{T}_n$かつ$n > 0$ならば$\lambda. t_1 \in \mathcal{T}_{n-1}$
+        \item $t_1 \in \mathcal{T}_n$かつ$t_2 \in \mathcal{T}_n$ならば$(t_1 t_2) \in \mathcal{T}_n$
+    \end{enumerate}
+    各$\mathcal{T}_n$の要素を$n$項と呼ぶ.
+\end{definition}
+$\mathcal{T}_n$の要素は、高々$n$種類の自由変数を持つ項であり、それらの変数には$0$から$n-1$までの数が振られる.
+自由変数を含む項を扱うためには、名前付け文脈の仕組みが必要.
+例えば$\Gamma = x \mapsto 4, y \mapsto 3$のとき、$\lambda w. y w$を$\lambda. 4\ 0$と表現する.
+
+\subsection*{シフトと代入}
+\begin{definition}[シフト]
+    項$t$の、打ち切り値$c$以上の$d$個シフトを$\uparrow_{c}^d(t)$と書き、次のように定義する.
+    \begin{align*}
+        \uparrow_{c}^d(k) &=
+        \begin{cases}
+            k & (k < c)\\
+            k + d & (k \geq c)
+        \end{cases}\\
+        \uparrow_{c}^d (\lambda. t_1) &= \lambda. \uparrow_{c+1}^d(t_1)\\
+        \uparrow_{c}^d (t_1 t_2) &= \uparrow_{c}^d (t_1) \uparrow_c^d(t_2)\\
+    \end{align*}
+\end{definition}
+\begin{definition}[代入]
+    項$t$における、変数番号$j$への項$s$の代入を$[j \mapsto s]t$と書き、次のように定義する.
+    \begin{align*}
+        [j \mapsto s]k &=
+        \begin{cases}
+            s & (k = j)\\
+            k & (otherwise)
+        \end{cases}\\
+        [j \mapsto s](\lambda. t_1) &= \lambda [j + 1 \mapsto \uparrow^1(s)]t_1\\
+        [j \mapsto s](t_1 t_2) &= ([j \mapsto s] t_1)([j \mapsto s] t_2)
+    \end{align*}
+\end{definition}
+\subsection*{評価}
+$(\lambda. t_{12}) v_2 \rightarrow \uparrow^{-1}([0 \mapsto \uparrow^{1}(v_2)]t_{12})$
+
 
 \end{document}

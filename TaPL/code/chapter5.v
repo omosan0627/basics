@@ -330,33 +330,56 @@ exists (App x5 x3). split. simpl. rewrite H7. apply thm6_1_5 in H5. rewrite H5. 
 split. simpl. rewrite H8. apply thm6_1_5 in H5. rewrite H5. reflexivity. apply H6.
 apply EApp1. apply H9. apply H3. apply H4. rewrite H3 in H1. rewrite H5 in H1. inversion H1.
 rewrite H4 in H2. inversion H2. rewrite H3 in H1. inversion H1.
-admit.
+
+intros. simpl in H2. simpl in H3.
+assert ((exists s, restorenames v1 l = Some s) \/ restorenames v1 l = None). apply some_or_none.
+assert ((exists s, restorenames i2 l = Some s) \/ restorenames i2 l = None). apply some_or_none.
+assert ((exists s, restorenames i2' l = Some s) \/ restorenames i2' l = None). apply some_or_none.
+destruct H4. destruct H4. destruct H5. destruct H5. destruct H6. destruct H6. rewrite H4 in H2.
+rewrite H4 in H3. rewrite H5 in H2. rewrite H6 in H3. assert (Gamma l). apply H1. apply IHshift_step with (x0 := x3) (x:=x2) in H1.
+apply TermRev. inversion H2. inversion H3. subst. inversion H1. destruct H8. destruct H8.
+destruct H8. destruct H12. subst. exists (App x1 x). exists (App x1 x0).
+split. simpl. apply thm6_1_5 in H4. rewrite H4. rewrite H8. reflexivity. apply H7.
+split. simpl. apply thm6_1_5 in H4. rewrite H4. rewrite H12. reflexivity. apply H7.
+apply EApp2. destruct H. simpl in H4.
+assert (exists x, (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end) = x).
+exists (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end). reflexivity.
+destruct H. rewrite H in H4. 
+assert ((exists s, (restorenames t1 (x4 :: l)) = Some s) \/ (restorenames t1 (x4 :: l)) = None).
+apply some_or_none. destruct H9. destruct H9. rewrite H9 in H4. inversion H4. apply v_Abst.
+rewrite H9 in H4. inversion H4. apply H13. apply H5. apply H6. rewrite H4 in H3. rewrite H6 in H3. inversion H3.
+rewrite H4 in H2. rewrite H5 in H2. inversion H2. rewrite H4 in H3. inversion H3.
+
 admit.
 intros. destruct H. apply GSstep. apply H. destruct H0. destruct H0. destruct H0. destruct H0. destruct H1.
 generalize dependent i1. generalize dependent i2. generalize dependent l. induction H2.
 intros. simpl in H1. simpl in H0.
-assert ((exists s, removenames t1 l = Some s) \/ removenames i1 l = None). apply some_or_none.
-assert ((exists s, removenames t1' l = Some s) \/ removenames i1' l = None). apply some_or_none.
-assert ((exists s, removenames t2 l = Some s) \/ removenames i2 l = None). apply some_or_none.
+assert ((exists s, removenames t1 l = Some s) \/ removenames t1 l = None). apply some_or_none.
+assert ((exists s, removenames t1' l = Some s) \/ removenames t1' l = None). apply some_or_none.
+assert ((exists s, removenames t2 l = Some s) \/ removenames t2 l = None). apply some_or_none.
+destruct H3. destruct H3. destruct H4. destruct H4. destruct H5. destruct H5.
+rewrite H3 in H0. rewrite H5 in H0. rewrite H4 in H1. rewrite H5 in H1. apply IHterm_step with (i1:=x) in H4.
+ inversion H0. inversion H1. apply IEApp1. apply H4. destruct H. split. apply H. destruct H6.
+destruct H6. destruct H7. inversion H0. inversion H1. subst. simpl in H6. simpl in H7.
+assert ((exists s, restorenames x l = Some s) \/ restorenames x l = None). apply some_or_none.
+assert ((exists s, restorenames x0 l = Some s) \/ restorenames x0 l = None). apply some_or_none.
+destruct H8. destruct H9. split. apply H8. apply H9. rewrite H9 in H7. inversion H7.
+rewrite H8 in H6. inversion H6. apply H3. rewrite H3 in H0. rewrite H5 in H0. inversion H0.
+ rewrite H4 in H1. inversion H1. rewrite H3 in H0. inversion H0.
 
+intros. destruct H0. destruct H4. destruct H4. destruct H5. simpl in H1. simpl in H3.
+assert ((exists s, removenames v1 l = Some s) \/ removenames v1 l = None). apply some_or_none.
+assert ((exists s, removenames t2 l = Some s) \/ removenames t2 l = None). apply some_or_none.
+assert ((exists s, removenames t2' l = Some s) \/ removenames t2' l = None). apply some_or_none.
+destruct H6. destruct H6. destruct H7. destruct H7. destruct H8. destruct H8. 
+rewrite H6 in H3. rewrite H7 in H3. rewrite H6 in H1. rewrite H8 in H1. inversion H1.
+inversion H3. subst. simpl in H4. simpl in H5.
+assert ((exists s, restorenames x1 l = Some s) \/ restorenames x1 l = None). apply some_or_none.
+assert ((exists s, restorenames x2 l = Some s) \/ restorenames x2 l = None). apply some_or_none.
+assert ((exists s, restorenames x3 l = Some s) \/ restorenames x3 l = None). apply some_or_none.
+ 
+ admit. Admitted.
 
-destruct H. destruct H. destruct H6. inversion H1. inversion H2. split. exists x.
-simpl. rewrite H3. rewrite H5. subst. reflexivity. exists x0. simpl. rewrite H4. rewrite H5.
-subst. reflexivity. apply H3. apply H4. rewrite H3 in H1. rewrite H5 in H1. inversion H1.
-rewrite H4 in H2. inversion H2. rewrite H3 in H1. inversion H1. admit. admit.
-inversion H3. inversion H5. destruct H7. destruct H7. rewrite H7 in H11. rewrite H8 in H11.
-inversion H11. assert (Gamma_index i1 x /\ Gamma_index i1' x). split. apply GI.
-split. apply H4. exists x2. apply H6. apply GI. split. apply H4. exists x4. apply H7.
-apply IHshift_step in H9. destruct H9. destruct H9. destruct H9. destruct H9. destruct H13.
-apply thm6_1_5 in H7. apply thm6_1_5.
-IHshift_step. destruct H0.
-destruct H0. destruct H0. destruct H1. exists x. assert (exists s, restorenames i2 x = Some s).
-
-admit. admit. destruct H. generalize dependent t1. induction i12. intros. admit.
-intros. admit. admit. intros. destruct H. destruct H. destruct H.  destruct H.
-destruct H0. subst. induction H1. simpl. apply IEApp1. apply IHterm_step.
-simpl. apply IEApp2. destruct H. simpl. apply iv_Abst. apply IHterm_step.
-simpl. apply IEAppAbs. 
 
 Fixpoint max_symbol_impl (t: term): nat :=
     match t with

@@ -13,6 +13,21 @@ Fixpoint eq_nat (n:nat) (m:nat) : bool :=
     | S n1, S m1 => eq_nat n1 m1
   end.
 
+Lemma eq_nat_eq: forall n, eq_nat n n = true.
+induction n. simpl. reflexivity. simpl. apply IHn. Qed.
+
+Lemma eq_nat_swap: forall n m, eq_nat n m = eq_nat m n.
+intro. induction n. destruct m. simpl. reflexivity. simpl. reflexivity.
+intros. destruct m. simpl. reflexivity. simpl. apply IHn. Qed.
+
+Lemma eq_nat_equal: forall n m, eq_nat n m = true <-> n = m.
+split. generalize dependent m. induction n. intros. destruct m. reflexivity. simpl in H.
+inversion H. intros. destruct m. simpl in H. inversion H. simpl in H. apply IHn in H.
+subst. reflexivity. generalize dependent m. induction n. destruct m.
+simpl. reflexivity. intros. inversion H. intros. destruct m. inversion H.
+inversion H. simpl. apply eq_nat_eq. Qed.
+
+
 Definition eq_symbol (x: symbol) (y: symbol): bool :=
     match x, y with
     | Symb v, Symb w => eq_nat v w
@@ -43,113 +58,150 @@ Definition tru: term := Abst VA (Abst VB (Var VA)).
 Definition fls: term := Abst VA (Abst VB (Var VD)).
 Definition test: term := Abst VA (Abst VB (Abst VC (App (App (Var VA) (Var VB)) (Var VD)))).
 
-(* Gammaを 0 :: 1 :: ... :: n - 1 :: nil とする。これを l' = l ++ Gamma
-で表現する。つまり本でのremovenames t l'はここではremovenames t l nに相当する*)
-Fixpoint symbol_find (l: list symbol) (v: nat) (n: nat): option nat :=
+Fixpoint find_index (l: list symbol) (x: symbol) : option nat :=
   match l with
-  | nil => if v <? n then Some v else None 
-  | t :: l => if eq_symbol (Symb v) t then Some 0 else 
-    (match symbol_find l v n with
+  | nil => None 
+  | t :: l => if eq_symbol x t then Some 0 else 
+    (match find_index l x with
       | None => None
-      | Some w => Some (S w)
+      | Some k => Some (S k)
     end)
   end.
 
-Fixpoint removenames (t:term) (l: list symbol) (n:nat) : option index :=
+Fixpoint removenames (t:term) (l: list symbol) : option index :=
   match t with
-  | Var (Symb v) => 
-    (match symbol_find l v n with 
+  | Var x => 
+    (match find_index l x with 
       | None => None
       | Some x => Some (IndVar x)
     end)
   | Abst x t => 
-    (match removenames t (x :: l) n with
+    (match removenames t (x :: l) with
       | None => None 
       | Some s => Some (IndAbst s)
     end)
   | App t1 t2 => 
-    (match removenames t1 l n, removenames t2 l n with
+    (match removenames t1 l, removenames t2 l with
       | None, _ => None
       | _, None => None
       | Some s1, Some s2 => Some (IndApp s1 s2)
     end)
   end.
 
-(* removenamesと同様。ただlはlistのlengthさえ分かればよい。*)
-Fixpoint restorenames (i:index) (l: nat) (n: nat) : option term :=
+Fixpoint restorenames (i:index) (l: list symbol) : option term :=
   match i with
-  (* v - l < nでなければならない*)
-  | IndVar v => if v <? l then Some (Var (Symb (v + n))) else 
-    (if v - l <? n then Some (Var (Symb (v - l))) else None)
-  | IndAbst i1 => 
-    (match restorenames i1 (S l) n with 
+  | IndVar k => 
+    (match nth_error l k with
       | None => None
-      | Some s => Some (Abst (Symb (n + l)) s)
+      | Some x => Some (Var x)
+    end)
+  | IndAbst i1 => let x := 
+    (match l with
+      | nil => Symb 0
+      | Symb k :: l' => Symb (S k)
+    end) in
+    (match restorenames i1 (x :: l) with 
+      | None => None
+      | Some s => Some (Abst x s)
     end)
   | IndApp i1 i2 => 
-    (match restorenames i1 l n, restorenames i2 l n with
+    (match restorenames i1 l, restorenames i2 l with
       | None, _ => None
       | _, None => None
       | Some s1, Some s2 => Some (App s1 s2)
     end)
   end.
 
-Inductive natsymb: nat -> list symbol -> Prop :=
-  | NSInit: natsymb 0 nil
-  | NSStep: forall n l, natsymb n l -> natsymb (S n) (Symb n :: l).
-
-Inductive abst_term_depth: term -> nat -> Prop :=
-  | ATDVar: forall x, abst_term_depth (Var x) 0
-  | ATDAbst: forall x t1 n, abst_term_depth t1 n -> abst_term_depth (Abst x t1) (S n)
-  | ATDApp: forall t1 t2 n1 n2, abst_term_depth t1 n1 -> abst_term_depth t2 n2
-  -> abst_term_depth (App t1 t2) (max n1 n2).
+Inductive Gamma: list symbol -> Prop :=
+  | NSNil: Gamma nil
+  | NSOne: forall x, Gamma (x :: nil)
+  | NSCons: forall n m l, Gamma (Symb n :: l) -> n < m -> Gamma (Symb m :: Symb n :: l).
 
 Lemma some_or_none: forall A, forall t: option A, (exists s, t = Some s) \/ t = None.
 intros. destruct t. left. exists a. reflexivity. right. reflexivity. Qed.
 
+Lemma Gamma_retain: forall x l, Gamma l -> (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end) = x ->
+Gamma (x :: l). intros. generalize dependent x. induction H. intros. apply NSOne.
+intros. destruct x0. destruct x. apply NSCons. apply NSOne. inversion H0. apply le_lt_n_Sm.
+apply le_n. intros. subst. apply NSCons. apply NSCons. apply H. apply H0. apply le_lt_n_Sm. apply le_n.
+Qed. 
 
-Theorem thm6_1_5: forall i n l n' t, length l = n -> restorenames i n n' = Some t ->
-removenames t l n' = Some i.
-intros. generalize dependent n. generalize dependent n'. generalize dependent l. generalize dependent t. 
+Lemma Gamma_three: forall x y l, Gamma (x :: y :: l) -> Gamma (x :: l).
+induction l. intros. apply NSOne. intros. inversion H. inversion H2.
+apply NSCons. apply H7. apply lt_trans with (m:=n). apply H9. apply H4. Qed.
+
+Lemma Gamma_find: forall l i j k, find_index l (Symb i) = Some k -> Gamma ((Symb j) :: l) -> j > i.
+induction l. intros. simpl in H. inversion H. intros. assert (forall b, b = true \/ b = false).
+intros. destruct b. left. reflexivity. right. reflexivity. assert (eq_symbol a (Symb i) = true \/ 
+eq_symbol a (Symb i) = false). apply H1. destruct H2. simpl in H. destruct a. 
+simpl in H2. assert (eq_nat n i = eq_nat i n). apply eq_nat_swap. rewrite H3 in H2. rewrite H2 in H.
+inversion H. assert (i = n). apply eq_nat_equal in H2. apply H2. subst. inversion H0.
+apply H8. destruct a. simpl in H. inversion H2. assert (eq_nat n i = eq_nat i n).
+apply eq_nat_swap. rewrite H3 in H4. rewrite H4 in H. assert ((exists s, find_index l (Symb i) = Some s) \/ find_index l (Symb i) = None).
+apply some_or_none. destruct H5. destruct H5. rewrite H5 in H. inversion H. 
+apply IHl with (j:=j) in H5. apply H5. apply Gamma_three in H0. apply H0. rewrite H5 in H. inversion H. Qed.
+
+Lemma not_equal_or_equal: forall (n0 :nat) (n1 :nat), n0 = n1 \/ ~ (n0 = n1).
+intros. generalize dependent n1. induction n0. destruct n1. left. reflexivity. right. unfold not. intros. inversion H. 
+induction n1. right. unfold not. intros. inversion H. assert (n0 = n1 \/ n0 <> n1).
+apply IHn0. destruct H. left. subst. reflexivity. right. unfold not. intros. inversion H0.
+contradiction. Qed. 
+
+Lemma eqnot_eq_symbol: forall n1 n0, n1 <> n0 -> eq_symbol (Symb n1) (Symb n0) = false.
+intros. unfold not in H. generalize dependent n0. induction n1. intros. destruct n0.
+assert (0 = 0). reflexivity. apply H in H0. contradiction. simpl. reflexivity.
+intros. destruct n0. simpl. reflexivity. simpl. simpl in IHn1. apply IHn1. intros. assert (S n1 = S n0).
+subst. reflexivity. apply H in H1. apply H1. Qed.
+
+Lemma eqnot_succ: forall n, S n <> n. unfold not. intros. induction n. inversion H.
+inversion H. apply IHn in H1. apply H1. Qed.
+
+Lemma lt_eq: forall n0, not (n0 > n0). intros. unfold not. intros.
+induction n0. inversion H. apply gt_S_n in H. apply IHn0. apply H. Qed.
+
+Corollary gt_eq_symbol: forall n1 n0, n1 < n0 -> eq_symbol (Symb n1) (Symb n0) = false.
+intros. assert (n1 <> n0). unfold not. intros. subst. apply lt_eq in H. apply H.
+apply eqnot_eq_symbol in H0. apply H0. Qed.
+
+
+Lemma nth_error_inversion: forall l n x, Gamma l -> nth_error l n = Some x -> find_index l x = Some n.
+
+induction l. intros. generalize dependent x. destruct n. intros. simpl in H0.  inversion H0.
+intros. simpl in H0. inversion H0.
+intros. destruct n. simpl in H0. inversion H0. simpl. assert (eq_symbol x x = true).
+destruct x. unfold eq_symbol. apply eq_nat_eq. rewrite H1. reflexivity.
+simpl in H0. apply IHl in H0. simpl. destruct x. destruct a. 
+assert (find_index l (Symb n0) = Some n). apply H0.
+apply Gamma_find with (j:=n1) in H0. 
+assert (eq_symbol (Symb n0) (Symb n1) = false). apply gt_eq_symbol. apply H0. rewrite H2. 
+assert ((exists s, find_index l (Symb n0) = Some s) \/ find_index l (Symb n0) = None).
+apply some_or_none. destruct H2. destruct H3. destruct H2.
+rewrite H1. reflexivity. assert (Some n = None). symmetry in H1. symmetry in H2. rewrite H1.
+rewrite H2. reflexivity. inversion H3. apply H. inversion H. apply NSNil. apply H3. Qed.
+
+Theorem thm6_1_5: forall i l t, Gamma l -> restorenames i l = Some t ->
+removenames t l = Some i.
+intros. generalize dependent l. generalize dependent t. 
 induction i.
-intros. inversion H0. assert (forall b, b = true \/  b = false). intros. destruct b.
-left. reflexivity. right. reflexivity. assert (n <? n0 = true \/ n <? n0 = false).
-apply H1. destruct H3. rewrite H3 in H2. inversion H2. simpl. assert (symbol_find l (n + n') n' = Some n).
-admit. rewrite H4. reflexivity. rewrite H3 in H2. assert (n - n0 <? n' = true \/ n - n0 <? n' = false).
-apply H1. destruct H4. rewrite H4 in H2. inversion H2. simpl. assert (symbol_find l (n - n0) n' = Some n). 
-admit. rewrite H5. reflexivity. rewrite H4 in H2. inversion H2.
+intros. inversion H0. assert ((exists s, nth_error l n = Some s) \/ nth_error l n = None).
+apply some_or_none. destruct H1. destruct H1.
+rewrite H1 in H2. inversion H2. simpl. assert (find_index l x = Some n). apply nth_error_inversion.
+apply H. apply H1.  
+rewrite H3. reflexivity. rewrite H1 in H2. inversion H2.
+intros. inversion H0. assert (exists x, (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end) = x).
+exists (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end).
+reflexivity. destruct H1. rewrite H1 in H2.
+assert ((exists s, restorenames i (x :: l) = Some s) \/ restorenames i (x :: l) = None). apply some_or_none.
+destruct H3. destruct H3. rewrite H3 in H2. inversion H2. simpl. assert (removenames x0 (x :: l) = Some i).
+apply IHi. apply Gamma_retain. apply H. apply H1. apply H3. rewrite H4. reflexivity. rewrite H3 in H2. inversion H2.
 intros. inversion H0.
-assert ((exists s, restorenames i (S n) n' = Some s) \/ restorenames i (S n) n' = None). apply some_or_none.
-destruct H1. destruct H1. rewrite H1 in H2. inversion H2. simpl.
-assert (removenames x (Symb (n' + n) :: l) n' = Some i). apply IHi with (n:= (S n)).
-simpl. subst. reflexivity. apply H1. rewrite H3. reflexivity. rewrite H1 in H2. inversion H2. 
-intros. inversion H0. assert ((exists s1, restorenames i1 n n' = Some s1) \/ restorenames i1 n n' = None).
-apply some_or_none. assert ((exists s1, restorenames i2 n n' = Some s1) \/ restorenames i2 n n' = None).
+assert ((exists s1, restorenames i1 l = Some s1) \/ restorenames i1 l = None).
+apply some_or_none. assert ((exists s1, restorenames i2 l = Some s1) \/ restorenames i2 l = None).
 apply some_or_none. destruct H1. destruct H1. destruct H3. destruct H3. rewrite H1 in H2.
-rewrite H3 in H2. inversion H2. simpl. assert (removenames x l n' = Some i1). apply IHi1 with (n:=n).
-apply H. apply H1. assert (removenames x0 l n' = Some i2). apply IHi2 with (n:=n). apply H.
+rewrite H3 in H2. inversion H2. simpl. assert (removenames x l = Some i1). apply IHi1.
+apply H. apply H1. assert (removenames x0 l = Some i2). apply IHi2. apply H.
 apply H3. rewrite H4. rewrite H6. reflexivity. rewrite H1 in H2. rewrite H3 in H2. inversion H2.
-rewrite H1 in H2. inversion H2. Admitted.
-
-
-unfold restorenames. unfold removenames. simpl. assert (n - 0 = n). destruct n.
-reflexivity. simpl. reflexivity. rewrite H0. reflexivity. simpl in H. inversion H.
-simpl in H. assert (forall n1 n2, 0 = max n1 n2 -> 0 = n1 /\ 0 = n2).
-intros. destruct n1. split. reflexivity. simpl in H0. apply H0.
-destruct n2. simpl in H0. inversion H0. simpl in H0. inversion H0.
-apply H0 in H. destruct H. apply IHi1 in H. apply IHi2 in H1. unfold restorenames. unfold removenames.
-simpl. unfold restorenames in H. unfold removenames in H. unfold restorenames in H1. unfold removenames in H1.
-rewrite H. rewrite H1. reflexivity. 
-intros. induction i.
-simpl in H0. inversion H0. inversion H0.
-unfold restorenames. unfold removenames. simpl.
-intros. induction i. unfold restorenames. simpl. unfold removenames.
-simpl. assert (n - 0 = n). induction n. simpl. reflexivity. simpl. reflexivity. rewrite H.
-reflexivity. unfold restorenames. simpl.
-unfold removenames. simpl. induction i. admit. simpl. admit. unfold restorenames. simpl. unfold removenames.
-simpl. unfold restorenames in IHi1. unfold removenames in IHi1. 
-unfold restorenames in IHi2. unfold removenames in IHi2. rewrite IHi1. rewrite IHi2.
-reflexivity. Admitted.
+rewrite H1 in H2. inversion H2. Qed.
 
 Fixpoint is_free_var (x: symbol) (t:term): bool :=
   match t with
@@ -190,9 +242,9 @@ Inductive term_step: term -> term -> Prop :=
   | EAppAbs: forall x t12 v2 s, value v2 -> subst x v2 t12 = Some s ->
     term_step (App (Abst x t12) v2) s.
 
-Inductive index_step: index -> index -> Prop :=
-  | TermRev: forall i1 i2, (exists t1 t2, (removenames t1 nil) = i1 /\ (removenames t2 nil) = i2 /\ term_step t1 t2) 
-  -> index_step i1 i2.
+Inductive index_step: list symbol -> index -> index -> Prop :=
+  | TermRev: forall l i1 i2, (exists t1 t2, (removenames t1 l) = Some i1 /\ (removenames t2 l) = Some i2 /\ term_step t1 t2) 
+  -> index_step l i1 i2.
 
 Fixpoint eval (t:term): term :=
   match t with
@@ -250,9 +302,56 @@ Inductive shift_step: index -> index -> Prop :=
   | IEAppAbs: forall i12 v2, index_value v2 -> 
   shift_step (IndApp (IndAbst i12) v2) (shift (index_subst 0 (shift v2 (Some 1) 0) i12) None 0).
 
-Theorem index_equals_shift: forall i1 i2, shift_step i1 i2 <-> index_step i1 i2.
-intros. split. intros. apply TermRev. induction H.  destruct IHshift_step. destruct H0.
-destruct H0. destruct H1.
+Inductive Gamma_index_step: list symbol -> index -> index -> Prop :=
+  | GIstep: forall l i1 i2, 
+  Gamma l /\ (exists t1, restorenames i1 l = Some t1) /\ (exists t2, restorenames i2 l = Some t2) 
+  -> index_step l i1 i2 
+  -> Gamma_index_step l i1 i2.
+
+Inductive Gamma_shift_step: list symbol -> index -> index -> Prop :=
+  | GSstep: forall l i1 i2,
+  Gamma l /\ (exists t1, restorenames i1 l = Some t1) /\ (exists t2, restorenames i2 l = Some t2) 
+  -> shift_step i1 i2
+  -> Gamma_shift_step l i1 i2.
+
+Theorem index_equals_shift: forall l i1 i2, 
+  (Gamma_shift_step l i1 i2 <-> Gamma_index_step l i1 i2).
+intros. split. intros. apply GIstep. inversion H. subst. apply H0. destruct H. destruct H. destruct H1. destruct H1.
+destruct H2. generalize dependent l. generalize dependent x. generalize dependent x0.
+induction H0. intros. simpl in H1. simpl in H2.
+assert ((exists s, restorenames i1 l = Some s) \/ restorenames i1 l = None). apply some_or_none.
+assert ((exists s, restorenames i1' l = Some s) \/ restorenames i1' l = None). apply some_or_none.
+assert ((exists s, restorenames i2 l = Some s) \/ restorenames i2 l = None). apply some_or_none.
+apply TermRev.
+destruct H3. destruct H3. destruct H4. destruct H4. destruct H5. destruct H5. rewrite H3 in H1. rewrite H4 in H2. 
+rewrite H5 in H1. rewrite H5 in H2. assert (Gamma l). apply H. apply IHshift_step with (x0:=x2) (x := x1) in H.
+inversion H. subst. destruct H7. destruct H7. destruct H7. destruct H8. exists (App x4 x3).
+exists (App x5 x3). split. simpl. rewrite H7. apply thm6_1_5 in H5. rewrite H5. reflexivity. apply H6. 
+split. simpl. rewrite H8. apply thm6_1_5 in H5. rewrite H5. reflexivity. apply H6.
+apply EApp1. apply H9. apply H3. apply H4. rewrite H3 in H1. rewrite H5 in H1. inversion H1.
+rewrite H4 in H2. inversion H2. rewrite H3 in H1. inversion H1.
+admit.
+admit.
+intros. destruct H. apply GSstep. apply H. destruct H0. destruct H0. destruct H0. destruct H0. destruct H1.
+generalize dependent i1. generalize dependent i2. generalize dependent l. induction H2.
+intros. simpl in H1. simpl in H0.
+assert ((exists s, removenames t1 l = Some s) \/ removenames i1 l = None). apply some_or_none.
+assert ((exists s, removenames t1' l = Some s) \/ removenames i1' l = None). apply some_or_none.
+assert ((exists s, removenames t2 l = Some s) \/ removenames i2 l = None). apply some_or_none.
+
+
+destruct H. destruct H. destruct H6. inversion H1. inversion H2. split. exists x.
+simpl. rewrite H3. rewrite H5. subst. reflexivity. exists x0. simpl. rewrite H4. rewrite H5.
+subst. reflexivity. apply H3. apply H4. rewrite H3 in H1. rewrite H5 in H1. inversion H1.
+rewrite H4 in H2. inversion H2. rewrite H3 in H1. inversion H1. admit. admit.
+inversion H3. inversion H5. destruct H7. destruct H7. rewrite H7 in H11. rewrite H8 in H11.
+inversion H11. assert (Gamma_index i1 x /\ Gamma_index i1' x). split. apply GI.
+split. apply H4. exists x2. apply H6. apply GI. split. apply H4. exists x4. apply H7.
+apply IHshift_step in H9. destruct H9. destruct H9. destruct H9. destruct H9. destruct H13.
+apply thm6_1_5 in H7. apply thm6_1_5.
+IHshift_step. destruct H0.
+destruct H0. destruct H0. destruct H1. exists x. assert (exists s, restorenames i2 x = Some s).
+
 admit. admit. destruct H. generalize dependent t1. induction i12. intros. admit.
 intros. admit. admit. intros. destruct H. destruct H. destruct H.  destruct H.
 destruct H0. subst. induction H1. simpl. apply IEApp1. apply IHterm_step.

@@ -350,7 +350,27 @@ apply some_or_none. destruct H9. destruct H9. rewrite H9 in H4. inversion H4. ap
 rewrite H9 in H4. inversion H4. apply H13. apply H5. apply H6. rewrite H4 in H3. rewrite H6 in H3. inversion H3.
 rewrite H4 in H2. rewrite H5 in H2. inversion H2. rewrite H4 in H3. inversion H3.
 
-admit.
+intros. apply TermRev. exists x. exists x0. split. apply thm6_1_5 in H1. apply H1.
+apply H0. split. apply thm6_1_5 in H2. apply H2. apply H0. 
+simpl in H1.
+assert (exists v, (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end) = v).
+exists (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end).
+reflexivity. destruct H3. rewrite H3 in H1.
+assert ((exists s, restorenames i12 (x1 :: l) = Some s) \/ restorenames i12 (x1 :: l) = None).
+apply some_or_none. destruct H4. destruct H4. rewrite H4 in H1.
+assert ((exists s, restorenames v2 l = Some s) \/ restorenames v2 l = None).
+apply some_or_none. destruct H5. destruct H5. rewrite H5 in H1. inversion H1. apply EAppAbs.
+inversion H. subst. simpl in H5.
+assert (exists v, (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end) = v).
+exists (match l with | nil => Symb 0 | s :: _ => match s with | Symb k => Symb (S k) end end).
+reflexivity. destruct H3. rewrite H3 in H5.
+assert ((exists s, restorenames t1 (x :: l) = Some s) \/ restorenames t1 (x :: l) = None).
+apply some_or_none. destruct H6. destruct H6. rewrite H6 in H5. inversion H5. apply v_Abst.
+rewrite H6 in H5. inversion H5.
+admit. (* Hard. 示すのは非常に難しい気がする。 (\lambda \lambda 1 0) (\lambda 0)とか。簡約形を単純に
+restorenamesしても、term_stepは成立しない。 *)
+rewrite H5 in H1. inversion H1. rewrite H4 in H1. inversion H1.
+
 intros. destruct H. apply GSstep. apply H. destruct H0. destruct H0. destruct H0. destruct H0. destruct H1.
 generalize dependent i1. generalize dependent i2. generalize dependent l. induction H2.
 intros. simpl in H1. simpl in H0.
@@ -377,8 +397,40 @@ inversion H3. subst. simpl in H4. simpl in H5.
 assert ((exists s, restorenames x1 l = Some s) \/ restorenames x1 l = None). apply some_or_none.
 assert ((exists s, restorenames x2 l = Some s) \/ restorenames x2 l = None). apply some_or_none.
 assert ((exists s, restorenames x3 l = Some s) \/ restorenames x3 l = None). apply some_or_none.
+destruct H9. destruct H9. destruct H10. destruct H10. destruct H11. destruct H11.
+assert (shift_step x2 x3). apply IHterm_step with l. apply H8. split. apply H0. split.
+exists x5. apply H10. exists x6. apply H11. apply H7. apply IEApp2. inversion H. subst.
+simpl in H6. assert ((exists s, (removenames t1 (x7 :: l)) = Some s) \/ (removenames t1 (x7 :: l)) = None).
+apply some_or_none. destruct H13. destruct H13. rewrite H13 in H6. inversion H6. apply iv_Abst.
+rewrite H13 in H6. inversion H6. apply H12. rewrite H9 in H5. rewrite H11 in H5. inversion H5.
+rewrite H9 in H4. rewrite H10 in H4. inversion H4. rewrite H9 in H5. inversion H5. rewrite H6 in H1.
+rewrite H8 in H1. inversion H1. rewrite H6 in H3. rewrite H7 in H3. inversion H3. rewrite H6 in H1.
+inversion H1.
+
+intros.
+generalize dependent x. generalize dependent t12. generalize dependent v2. generalize dependent s.
+generalize dependent l. generalize dependent i2.
+induction i1. intros. simpl in H3.
+assert ((exists i, removenames t12 (x :: l) = Some i) \/ removenames t12 (x :: l) = None). apply some_or_none.
+assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
+destruct H4. destruct H4. rewrite H4 in H3. destruct H5. destruct H5. rewrite H5 in H3.
+inversion H3. rewrite H5 in H3. inversion H3. rewrite H4 in H3. inversion H3.
+intros. simpl in H3.
+assert ((exists i, removenames t12 (x :: l) = Some i) \/ removenames t12 (x :: l) = None). apply some_or_none.
+assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
+destruct H4. destruct H4. rewrite H4 in H3. destruct H5. destruct H5. rewrite H5 in H3.
+inversion H3. rewrite H5 in H3. inversion H3. rewrite H4 in H3. inversion H3.
+intros. simpl in H3. 
+assert ((exists i, removenames t12 (x :: l) = Some i) \/ removenames t12 (x :: l) = None). apply some_or_none.
+assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
+destruct H4. destruct H4. rewrite H4 in H3. destruct H5. destruct H5. rewrite H5 in H3. inversion H3.
+subst.
+
+admit. (* hard? *)
+
+rewrite H5 in H3. inversion H3. rewrite H4 in H3. inversion H3.
  
- admit. Admitted.
+Admitted.
 
 
 Fixpoint max_symbol_impl (t: term): nat :=

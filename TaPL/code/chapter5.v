@@ -242,6 +242,13 @@ Inductive term_step: term -> term -> Prop :=
   | EAppAbs: forall x t12 v2 s, value v2 -> subst x v2 t12 = Some s ->
     term_step (App (Abst x t12) v2) s.
 
+(* alpha変換の定義をあるtermからremovenamesで一致するtermに置き換える、にする。*)    
+(* alpha変換+term_stepを繰り返して、たどりつくtermの1つが得られれば良い。これは次のindex_stepを繰り返すこと
+に他ならなくて、またindex_step i1 i2 -> shift_step i1 i2が示せれば、
+1. removenames
+2. shift_stepを繰り返す
+3. restorenames
+という枠組みでできる。*)    
 Inductive index_step: list symbol -> index -> index -> Prop :=
   | TermRev: forall l i1 i2, (exists t1 t2, (removenames t1 l) = Some i1 /\ (removenames t2 l) = Some i2 /\ term_step t1 t2) 
   -> index_step l i1 i2.
@@ -368,7 +375,7 @@ assert ((exists s, restorenames t1 (x :: l) = Some s) \/ restorenames t1 (x :: l
 apply some_or_none. destruct H6. destruct H6. rewrite H6 in H5. inversion H5. apply v_Abst.
 rewrite H6 in H5. inversion H5.
 admit. (* Hard. 示すのは非常に難しい気がする。 (\lambda \lambda 1 0) (\lambda 0)とか。簡約形を単純に
-restorenamesしても、term_stepは成立しない。 *)
+restorenamesしても、term_stepは成立しない。実際片方だけ示せば良い。 *)
 rewrite H5 in H1. inversion H1. rewrite H4 in H1. inversion H1.
 
 intros. destruct H. apply GSstep. apply H. destruct H0. destruct H0. destruct H0. destruct H0. destruct H1.

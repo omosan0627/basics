@@ -322,8 +322,9 @@ Inductive Gamma_shift_step: list symbol -> index -> index -> Prop :=
   -> Gamma_shift_step l i1 i2.
 
 Theorem index_equals_shift: forall l i1 i2, 
-  (Gamma_shift_step l i1 i2 <-> Gamma_index_step l i1 i2).
-intros. split. intros. apply GIstep. inversion H. subst. apply H0. destruct H. destruct H. destruct H1. destruct H1.
+  (Gamma_index_step l i1 i2 -> Gamma_shift_step l i1 i2).
+
+(* intros. split. intros. apply GIstep. inversion H. subst. apply H0. destruct H. destruct H. destruct H1. destruct H1.
 destruct H2. generalize dependent l. generalize dependent x. generalize dependent x0.
 induction H0. intros. simpl in H1. simpl in H2.
 assert ((exists s, restorenames i1 l = Some s) \/ restorenames i1 l = None). apply some_or_none.
@@ -377,6 +378,7 @@ rewrite H6 in H5. inversion H5.
 admit. (* Hard. 示すのは非常に難しい気がする。 (\lambda \lambda 1 0) (\lambda 0)とか。簡約形を単純に
 restorenamesしても、term_stepは成立しない。実際片方だけ示せば良い。 *)
 rewrite H5 in H1. inversion H1. rewrite H4 in H1. inversion H1.
+ *)
 
 intros. destruct H. apply GSstep. apply H. destruct H0. destruct H0. destruct H0. destruct H0. destruct H1.
 generalize dependent i1. generalize dependent i2. generalize dependent l. induction H2.
@@ -415,27 +417,9 @@ rewrite H8 in H1. inversion H1. rewrite H6 in H3. rewrite H7 in H3. inversion H3
 inversion H1.
 
 intros.
-generalize dependent x. generalize dependent t12. generalize dependent v2. generalize dependent s.
+generalize dependent x. generalize dependent i1. generalize dependent v2. generalize dependent s.
 generalize dependent l. generalize dependent i2.
-induction i1. intros. simpl in H3.
-assert ((exists i, removenames t12 (x :: l) = Some i) \/ removenames t12 (x :: l) = None). apply some_or_none.
-assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
-destruct H4. destruct H4. rewrite H4 in H3. destruct H5. destruct H5. rewrite H5 in H3.
-inversion H3. rewrite H5 in H3. inversion H3. rewrite H4 in H3. inversion H3.
-intros. simpl in H3.
-assert ((exists i, removenames t12 (x :: l) = Some i) \/ removenames t12 (x :: l) = None). apply some_or_none.
-assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
-destruct H4. destruct H4. rewrite H4 in H3. destruct H5. destruct H5. rewrite H5 in H3.
-inversion H3. rewrite H5 in H3. inversion H3. rewrite H4 in H3. inversion H3.
-intros. simpl in H3. 
-assert ((exists i, removenames t12 (x :: l) = Some i) \/ removenames t12 (x :: l) = None). apply some_or_none.
-assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
-destruct H4. destruct H4. rewrite H4 in H3. destruct H5. destruct H5. rewrite H5 in H3. inversion H3.
-subst.
-
-admit. (* hard? *)
-
-rewrite H5 in H3. inversion H3. rewrite H4 in H3. inversion H3.
+induction t12. intros. simpl in H0. simpl in H3.
  
 Admitted.
 

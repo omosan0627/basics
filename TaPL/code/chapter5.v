@@ -306,8 +306,8 @@ Inductive index_value: index -> Prop :=
 Inductive shift_step: index -> index -> Prop :=
   | IEApp1: forall i1 i1' i2, shift_step i1 i1' -> shift_step (IndApp i1 i2) (IndApp i1' i2)
   | IEApp2: forall v1 i2 i2', index_value v1 -> shift_step i2 i2' -> shift_step (IndApp v1 i2) (IndApp v1 i2')
-  | IEAppAbs: forall i12 v2, index_value v2 -> 
-  shift_step (IndApp (IndAbst i12) v2) (shift (index_subst 0 (shift v2 (Some 1) 0) i12) None 0).
+  | IEAppAbs: forall i12 v2 i3, index_value v2 -> i3 = (shift (index_subst 0 (shift v2 (Some 1) 0) i12) None 0) ->
+  shift_step (IndApp (IndAbst i12) v2) i3.
 
 Inductive Gamma_index_step: list symbol -> index -> index -> Prop :=
   | GIstep: forall l i1 i2, 
@@ -419,8 +419,29 @@ inversion H1.
 intros.
 generalize dependent x. generalize dependent i1. generalize dependent v2. generalize dependent s.
 generalize dependent l. generalize dependent i2.
-induction t12. intros. simpl in H0. simpl in H3.
- 
+induction t12. intros. 
+simpl in H0. assert (eq_symbol x s = true \/ eq_symbol x s = false). admit.
+destruct H4. rewrite H4 in H0. inversion H0. rewrite H6 in H3. 
+assert (x = s). admit. rewrite H5 in H3. simpl in  H3. assert (eq_symbol s s = true).
+admit. rewrite H7 in H3. rewrite H1 in H3. inversion H3.
+simpl in H3. apply IEAppAbs. admit. simpl. admit.
+rewrite H4 in H0. inversion H0. simpl in H3. assert (eq_symbol s x = false). admit.
+rewrite H5 in H3. assert ((exists k, find_index l s = Some k) \/ find_index l s = None). apply some_or_none.
+destruct H7. destruct H7. rewrite H7 in H3. assert ((exists s, removenames v2 l = Some s) \/ removenames v2 l = None).
+apply some_or_none. destruct H8. destruct H8. rewrite H8 in H3. inversion H3. apply IEAppAbs.
+admit. simpl. assert (s0 = Var s). rewrite H6. reflexivity. rewrite H9 in H1.
+simpl in H1. rewrite H7 in H1. inversion H1. reflexivity. rewrite H8 in H3. inversion H3. rewrite H7 in H3.
+inversion H3.
+
+intros. simpl in H0. assert (eq_symbol x s = true \/ eq_symbol x s = false). admit.
+destruct H4. rewrite H4 in H0. inversion H0. assert (x = s). admit.
+admit.
+admit.
+intros. 
+rewrite H4 in H0. assert (is_free_var s v2 = false). admit. rewrite H5 in H0. simpl in H0.
+assert ((exists s, subst x v2 t12 = Some s) \/ subst x v2 t12 = None). apply some_or_none.
+destruct H6. destruct H6. rewrite H6 in H0. apply IHt12 with (l:=l) (x:=x) (s:=Abst s x0) (v2:=v2).
+admit. 
 Admitted.
 
 

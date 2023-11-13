@@ -435,6 +435,7 @@ inversion H3.
 
 intros. simpl in H0. assert (eq_symbol x s = true \/ eq_symbol x s = false). admit.
 destruct H4. rewrite H4 in H0. inversion H0. assert (x = s). admit.
+simpl in H3. 
 admit.
 admit.
 intros. 

@@ -303,8 +303,8 @@ Fixpoint index_subst (j: nat) (s:index) (t: index): index :=
 Lemma shift_inversion: forall t c, shift (shift t (Some 1) c) None c = t. induction t.
 intros. simpl. assert (n + 1 = S n). admit. rewrite H.
 assert (n <? c = true \/ n <? c = false). admit. destruct H0. rewrite H0. simpl. rewrite H0. reflexivity.
-rewrite H0. simpl. rewrite H0.
-simpl. reflexivity. admit.
+rewrite H0. simpl. assert (n <? c = false -> S n <? c = false). admit. apply H1 in H0. rewrite H0.
+reflexivity.
 intros. simpl. assert (shift (shift t (Some 1) (S c)) None (S c) = t). apply IHt.
 rewrite H. reflexivity.
 simpl. intros. rewrite IHt1. rewrite IHt2. reflexivity. Admitted.

@@ -309,6 +309,23 @@ intros. simpl. assert (shift (shift t (Some 1) (S c)) None (S c) = t). apply IHt
 rewrite H. reflexivity.
 simpl. intros. rewrite IHt1. rewrite IHt2. reflexivity. Admitted.
 
+Lemma removenames_xx: forall t x l s1 s2, removenames t (x :: x :: l) = Some s1 
+-> removenames t (x :: l) = Some s2 -> s1 = shift s2 (Some 1) 1.
+induction t. intros. assert (eq_symbol s x = true \/ eq_symbol s x = false). admit.
+destruct H1. simpl in H. rewrite H1 in H. inversion H. simpl in H0.
+rewrite H1 in H0. inversion H0. simpl. reflexivity.
+simpl in H. rewrite H1 in H. simpl in H0. rewrite H1 in H0.
+assert ((exists s1, find_index l s = Some s1) \/ find_index l s = None).
+apply some_or_none. destruct H2. destruct H2. rewrite H2 in H. rewrite H2 in H0.
+inversion H. inversion H0. simpl. assert (S x0 = x0 + 1). admit. rewrite H3. reflexivity.
+rewrite H2 in H. inversion H. 
+intros. simpl in H. assert (s = x \/ s <> x). admit. destruct H1. rewrite H1 in H.
+rewrite H1 in H0. simpl in H0. apply IHt with (x:=x) (l:=x::l).
+assert ((exists s, removenames t (x :: x :: x :: l) = Some s) \/ removenames t (x :: x :: x :: l) = None).
+apply some_or_none. destruct H2. destruct H2. rewrite H2 in H. inversion H.
+assert ((exists s, removenames t (x :: x :: l) = Some s) \/ removenames t (x :: x :: l) = None).
+
+
 Inductive index_value: index -> Prop :=
   | iv_Abst: forall t1, index_value (IndAbst t1).
 

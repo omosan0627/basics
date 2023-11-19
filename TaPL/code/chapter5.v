@@ -309,21 +309,165 @@ intros. simpl. assert (shift (shift t (Some 1) (S c)) None (S c) = t). apply IHt
 rewrite H. reflexivity.
 simpl. intros. rewrite IHt1. rewrite IHt2. reflexivity. Admitted.
 
-Lemma removenames_xx: forall t x l s1 s2, removenames t (x :: x :: l) = Some s1 
--> removenames t (x :: l) = Some s2 -> s1 = shift s2 (Some 1) 1.
-induction t. intros. assert (eq_symbol s x = true \/ eq_symbol s x = false). admit.
-destruct H1. simpl in H. rewrite H1 in H. inversion H. simpl in H0.
-rewrite H1 in H0. inversion H0. simpl. reflexivity.
-simpl in H. rewrite H1 in H. simpl in H0. rewrite H1 in H0.
-assert ((exists s1, find_index l s = Some s1) \/ find_index l s = None).
-apply some_or_none. destruct H2. destruct H2. rewrite H2 in H. rewrite H2 in H0.
-inversion H. inversion H0. simpl. assert (S x0 = x0 + 1). admit. rewrite H3. reflexivity.
-rewrite H2 in H. inversion H. 
-intros. simpl in H. assert (s = x \/ s <> x). admit. destruct H1. rewrite H1 in H.
-rewrite H1 in H0. simpl in H0. apply IHt with (x:=x) (l:=x::l).
-assert ((exists s, removenames t (x :: x :: x :: l) = Some s) \/ removenames t (x :: x :: x :: l) = None).
-apply some_or_none. destruct H2. destruct H2. rewrite H2 in H. inversion H.
-assert ((exists s, removenames t (x :: x :: l) = Some s) \/ removenames t (x :: x :: l) = None).
+Lemma find_index_concat: forall l1 l2 s k, find_index (l1 ++ l2) s = Some k ->
+find_index l1 s = Some k \/ (find_index l1 s = None /\ (exists i, find_index l2 s = Some i /\ i + length l1 = k)).
+induction l1. intros. right. split. simpl. reflexivity.
+exists k. split. simpl in H. apply H. simpl. admit.
+intros. simpl in H. assert (eq_symbol s a = true \/ eq_symbol s a = false).
+admit. destruct H0. rewrite H0 in H. inversion H. left. simpl. rewrite H0. reflexivity.
+rewrite H0 in H. assert ((exists j, find_index (l1 ++ l2) s = Some j) \/ find_index (l1 ++ l2) s = None).
+apply some_or_none. destruct H1. destruct H1. rewrite H1 in H. apply IHl1 in H1.
+destruct H1. left. simpl. rewrite H0. rewrite H1. apply H. right.
+split. simpl. rewrite H0. destruct H1. rewrite H1. reflexivity. destruct H1.
+destruct H2. exists x0. split. destruct H2. apply H2. destruct H2. inversion H.
+simpl. subst. admit. rewrite H1 in H. inversion H. Admitted. 
+
+Lemma removenames_xx: forall t x l1 l2 l3 s1 c, removenames t  (l1 ++ (x :: l2) ++ l3) = Some s1 -> length l1 + length l2 = c
+-> exists s2, removenames t (l1 ++ (x :: l2) ++ (x :: l3)) = Some s2 /\ s2 = shift s1 (Some 1) (S c).
+induction t.
+intros. simpl in H.
+assert ((exists k, find_index (l1 ++ x :: l2 ++ l3) s = Some k) \/ find_index (l1 ++ x :: l2 ++ l3) s = None).
+apply some_or_none. destruct H1. destruct H1. rewrite H1 in H. apply find_index_concat in H1.
+destruct H1. exists s1. simpl.
+assert ((exists k, find_index (l1 ++ x :: l2 ++ x :: l3) s = Some k) \/ find_index (l1 ++ x :: l2 ++ x ::l3) s = None).
+apply some_or_none. destruct H2. destruct H2. rewrite H2. split.
+apply find_index_concat in H2. destruct H2. rewrite H1 in H2. inversion H2. subst. apply H.
+destruct H2. rewrite H2 in H1. inversion H1. inversion H. simpl. admit.
+admit. destruct H1. destruct H2. destruct H2. simpl in H2.
+assert (eq_symbol s x = true \/ eq_symbol s x = false). admit. destruct H4.
+rewrite H4 in H2. exists (IndVar (length l1)).
+simpl.
+assert ((exists k, find_index (l1 ++ x :: l2 ++  x :: l3) s = Some k) \/ find_index (l1 ++ x :: l2 ++ x ::l3) s = None).
+apply some_or_none. destruct H5. destruct H5. rewrite H5. split.
+apply find_index_concat in H5. destruct H5. rewrite H1 in H5. inversion H5. destruct H5.
+destruct H6. destruct H6. simpl in H6. rewrite H4 in H6. inversion H6. subst.
+admit. inversion H. simpl. subst. inversion H2. simpl. assert (length l1 <? S (length l1 + length l2) = true).
+admit. rewrite H0. reflexivity. admit.
+rewrite H4 in H2. assert ((exists k, find_index (l2 ++ l3) s = Some k) \/ find_index (l2 ++ l3) s = None).
+apply some_or_none. destruct H5. destruct H5. rewrite H5 in H2. inversion H2.
+apply find_index_concat in H5. destruct H5. exists (IndVar ((length l1) + x1)).
+split. simpl.
+assert ((exists k, find_index (l1 ++ x :: l2 ++ x :: l3) s = Some k) \/ find_index (l1 ++ x :: l2 ++ x ::l3) s = None).
+apply some_or_none. destruct H6. destruct H6. rewrite H6.
+apply find_index_concat in H6. destruct H6. rewrite H1 in H6. inversion H6.
+destruct H6. destruct H8. destruct H8. simpl in H8. rewrite H4 in H8.
+assert ((exists k, find_index (l2 ++ x :: l3) s = Some k) \/ find_index (l2 ++ x ::l3) s = None). apply some_or_none.
+destruct H10. destruct H10. rewrite H10 in H8. inversion H8.
+apply find_index_concat in H10. destruct H10. rewrite H5 in H10. inversion H10. subst. admit.
+destruct H10. rewrite H10 in H5. inversion H5. rewrite H10 in H8. inversion H8. admit. inversion H.
+simpl. admit. destruct H5. destruct H6. destruct H6. exists (IndVar (length l1 + x1 + 1)). 
+split. simpl.
+assert ((exists k, find_index (l1 ++ x :: l2 ++ x :: l3) s = Some k) \/ find_index (l1 ++ x :: l2 ++ x ::l3) s = None).
+apply some_or_none. destruct H9. destruct H9. rewrite H9. apply find_index_concat in H9.
+destruct H9. rewrite H9 in H1. inversion H1. destruct H9. destruct H10. destruct H10.
+assert (x :: l2 ++ x :: l3 = (x :: l2) ++ x :: l3). simpl. reflexivity. rewrite H12 in H10.
+apply find_index_concat in H10. destruct H10. simpl in H10. rewrite H4 in H10. rewrite H5 in H10. inversion H10.
+destruct H10. destruct H13. destruct H13. simpl in H13. rewrite H4 in H13.
+assert ((exists k, find_index l3 s = Some k) \/ find_index l3 s = None). apply some_or_none.
+destruct H15. destruct H15. rewrite H15 in H6. inversion H6. rewrite H15 in H13. inversion H13. subst.
+simpl. admit. rewrite H15 in H6. inversion H6. admit. inversion H. subst. simpl. 
+admit. rewrite H5 in H2. inversion H2. rewrite H1 in H. inversion H.
+
+
+intros. simpl in H. assert ((exists s3, removenames t (s :: l1 ++ x :: l2 ++ l3) = Some s3) \/ removenames t (s :: l1 ++ x :: l2 ++ l3) = None).
+apply some_or_none. destruct H1. destruct H1. rewrite H1 in H. assert (s :: l1 ++ x :: l2 ++ l3 = (s :: l1) ++ x :: l2 ++ l3).
+simpl. reflexivity. rewrite H2 in H1. apply IHt with (c := S c) in H1. simpl in H1. destruct H1. destruct H1.
+exists (IndAbst x1). split. simpl. rewrite H1. reflexivity. inversion H. rewrite H3. simpl. reflexivity.
+simpl. rewrite H0. reflexivity. rewrite H1 in H. inversion H.
+intros. simpl in H. 
+assert ((exists s3, removenames t1 (l1 ++ x :: l2 ++ l3) = Some s3) \/ removenames t1 (l1 ++ x :: l2 ++ l3) = None).
+apply some_or_none. 
+assert ((exists s4, removenames t2 (l1 ++ x :: l2 ++ l3) = Some s4) \/ removenames t2 (l1 ++ x :: l2 ++ l3) = None).
+apply some_or_none. 
+destruct H1. destruct H1. destruct H2. destruct H2. rewrite H1 in H. rewrite H2 in H. 
+apply IHt1 with (c:=c) in H1. apply IHt2 with (c:=c) in H2. destruct H1. destruct H1.
+destruct H2. destruct H2. exists (IndApp x2 x3). split. simpl. 
+assert (x :: l2 ++ x :: l3 = (x :: l2) ++ x :: l3). simpl. reflexivity. rewrite H5.
+rewrite H1. rewrite H2.
+reflexivity. inversion H. rewrite H3. rewrite H4. simpl. reflexivity. apply H0. apply H0.
+rewrite H2 in H. rewrite H1 in H. inversion H. rewrite H1 in H. inversion H. Admitted.
+
+Lemma subst_removenames_xx: forall t1 s x l1 l2 t2, removenames t1 (l2 ++ x :: x :: l1) = Some t2 ->
+index_subst (S (length l2)) s t2 = t2. induction t1.
+intros. simpl in H.
+assert ((exists k, find_index (l2 ++ x :: x :: l1) s = Some k) \/ find_index (l2 ++ x :: x :: l1) s = None).
+apply some_or_none. destruct H0. destruct H0. rewrite H0 in H. inversion H. simpl.
+apply find_index_concat in H0. destruct H0. assert ((x0 =? S (length l2)) = false).
+admit. rewrite H1. reflexivity. destruct H0. destruct H1. destruct H1.
+simpl in H1. assert (eq_symbol s x = true \/ eq_symbol s x = false). admit.
+destruct H4. rewrite H4 in H1. inversion H1. subst. assert (0 + length l2 =? S (length l2) = false).
+admit. rewrite H2. reflexivity. rewrite H4  in H1.
+assert ((exists k, find_index l1 s = Some k) \/ find_index l1 s = None).
+apply some_or_none. destruct H5. destruct H5. rewrite H5 in H1. inversion H1. subst.
+assert (S (S x2) + length l2 =? S (length l2) = false). admit. rewrite H2. reflexivity.
+rewrite H5 in H1. inversion H1. rewrite H0 in H. inversion H.
+
+intros. simpl in H.
+assert ((exists s1, removenames t1 (s :: l2 ++ x :: x :: l1) = Some s1) \/ removenames t1 (s :: l2 ++ x :: x :: l1) = None).
+apply some_or_none. destruct H0. destruct H0. rewrite H0 in H.
+assert (s :: l2 ++ x :: x :: l1 = (s :: l2) ++ x :: x :: l1). simpl. reflexivity.
+rewrite H1 in H0. apply IHt1 with (s:=(shift s0 (Some 1) 0)) in H0. inversion H. simpl.
+simpl in H0. rewrite H0. reflexivity. rewrite H0 in H. inversion H.
+intros. simpl in H.
+assert ((exists s1, removenames t1_1 (l2 ++ x :: x :: l1) = Some s1) \/ removenames t1_1 (l2 ++ x :: x :: l1) = None).
+apply some_or_none.
+assert ((exists s2, removenames t1_2 (l2 ++ x :: x :: l1) = Some s2) \/ removenames t1_2 (l2 ++ x :: x :: l1) = None).
+apply some_or_none.
+destruct H0. destruct H0. rewrite H0 in H. destruct H1. destruct H1. rewrite H1 in H.
+apply IHt1_1 with (s:=s) in H0. apply IHt1_2 with (s:=s) in H1.
+inversion H. simpl. rewrite H0. rewrite H1. reflexivity.
+rewrite H1 in H. inversion H. rewrite H0 in H. inversion H. Admitted.
+
+Lemma removenames_non_free: forall t l1 l2 y i1 i2, 
+removenames t (l1 ++ l2) = Some i1 -> removenames t (l1 ++ y :: l2) = Some i2 ->
+is_free_var y t = false -> shift i1 (Some 2) (length l1) = shift i2 (Some 1) (length l1).
+
+induction t. intros. simpl in H. simpl in H0. 
+assert ((exists k, find_index (l1 ++ l2) s = Some k) \/ find_index (l1 ++ l2) s = None). apply some_or_none.
+destruct H2. destruct H2. rewrite H2 in H. apply find_index_concat in H2. destruct H2.
+assert ((exists k, find_index (l1 ++ y :: l2) s = Some k) \/ find_index (l1 ++ y :: l2) s = None). apply some_or_none.
+destruct H3. destruct H3. rewrite H3 in H0. apply find_index_concat in H3. destruct H3. rewrite H3 in H2.
+inversion H2. subst. inversion H. inversion H0. simpl. assert (x <? length l1 = true). admit. rewrite H4. reflexivity.
+destruct H3. rewrite H3 in H2. inversion H2. admit. destruct H2. destruct H3. destruct H3.
+assert ((exists k, find_index (l1 ++ y :: l2) s = Some k) \/ find_index (l1 ++ y :: l2) s = None). apply some_or_none.
+destruct H5. destruct H5. rewrite H5 in H0. apply find_index_concat in H5. destruct H5. rewrite H5 in H2. inversion H2.
+destruct H5. destruct H6. destruct H6. subst. inversion H. inversion H0.
+simpl. simpl in H1. simpl in H6. assert (eq_symbol s y = false). admit. rewrite H4 in H6. rewrite H3 in H6.
+inversion H6. admit.
+rewrite H5 in H0. inversion H0. rewrite H2 in H. inversion H.
+intros. simpl in H. simpl in H0. simpl in H1.
+
+assert (eq_symbol y s = true \/ eq_symbol y s = false). admit.
+destruct H2. rewrite H2 in H1. assert (y = s). admit. subst. 
+assert ((exists s1, removenames t (s :: l1 ++ l2) = Some s1) \/ removenames t (s :: l1 ++ l2) = None).
+apply some_or_none. destruct H3. destruct H3. rewrite H3 in H. assert (s :: l1 ++ l2 = nil ++ s :: l1 ++ l2).
+simpl. reflexivity. rewrite H4 in H3. apply removenames_xx with (c:=length l1) in H3.
+destruct H3. destruct H3. simpl in H3. rewrite H3 in H0. inversion H. inversion H0. subst.
+simpl. admit. simpl. reflexivity. rewrite H3 in H. inversion H. rewrite H2 in H1.
+assert ((exists s1, removenames t (s :: l1 ++ l2) = Some s1) \/ removenames t (s :: l1 ++ l2) = None).
+apply some_or_none.
+assert ((exists s1, removenames t (s :: l1 ++ y :: l2) = Some s1) \/ removenames t (s :: l1 ++ y :: l2) = None).
+apply some_or_none.
+destruct H3. destruct H3. destruct H4. destruct H4. rewrite H3 in H. rewrite H4 in H0.
+inversion H. inversion H0. simpl.
+assert (shift x (Some 2) (S (length l1)) = shift x0 (Some 1) (S (length l1))).
+apply IHt with (l1:= s :: l1) (l2 := l2) (y:=y). simpl. apply H3. simpl. apply H4. apply H1.
+rewrite H5. reflexivity. rewrite H4 in H0. inversion H0. rewrite H3 in H. inversion H.
+intros.  simpl in H. simpl in H0. simpl in H1.
+assert ((exists s1, removenames t1 (l1 ++ l2) = Some s1) \/ removenames t1 (l1 ++ l2) = None). apply some_or_none.
+assert ((exists s2, removenames t2 (l1 ++ l2) = Some s2) \/ removenames t2 (l1 ++ l2) = None). apply some_or_none.
+destruct H2. destruct H3. destruct H2. destruct H3. rewrite H2 in H. rewrite H3 in H.
+inversion H.
+assert ((exists s1, removenames t1 (l1 ++ y :: l2) = Some s1) \/ removenames t1 (l1 ++ y :: l2) = None). apply some_or_none.
+assert ((exists s2, removenames t2 (l1 ++ y :: l2) = Some s2) \/ removenames t2 (l1 ++ y :: l2) = None). apply some_or_none.
+destruct H4. destruct H4. destruct H6. destruct H6. rewrite H4 in H0. rewrite H6 in H0.
+inversion H0. simpl. apply IHt1 with (y:=y) (i2:=x1) in H2. apply IHt2 with (y:=y) (i2:=x2) in H3.
+rewrite H2. rewrite H3. reflexivity. apply H6. admit. apply H4. admit. rewrite H6 in H0. rewrite H4 in H0.
+inversion H0. rewrite H4 in H0. inversion H0. rewrite H3 in H. destruct H2. rewrite H2 in H. inversion H.
+rewrite H2 in H. inversion H. Admitted.
+
+
+
 
 
 Inductive index_value: index -> Prop :=
@@ -401,7 +545,7 @@ reflexivity. destruct H3. rewrite H3 in H5.
 assert ((exists s, restorenames t1 (x :: l) = Some s) \/ restorenames t1 (x :: l) = None).
 apply some_or_none. destruct H6. destruct H6. rewrite H6 in H5. inversion H5. apply v_Abst.
 rewrite H6 in H5. inversion H5.
-admit. (* Hard. 示すのは非常に難しい気がする。 (\lambda \lambda 1 0) (\lambda 0)とか。簡約形を単純に
+admit. (* Hard. 示すのはことはできると思うが… (\lambda \lambda 1 0) (\lambda 0)とか。簡約形を単純に
 restorenamesしても、term_stepは成立しない。実際片方だけ示せば良い。 *)
 rewrite H5 in H1. inversion H1. rewrite H4 in H1. inversion H1.
  *)
@@ -442,15 +586,18 @@ rewrite H9 in H4. rewrite H10 in H4. inversion H4. rewrite H9 in H5. inversion H
 rewrite H8 in H1. inversion H1. rewrite H6 in H3. rewrite H7 in H3. inversion H3. rewrite H6 in H1.
 inversion H1.
 
+
+
 intros.
 generalize dependent x. generalize dependent i1. generalize dependent v2. generalize dependent s.
 generalize dependent l. generalize dependent i2.
 induction t12. intros. 
 simpl in H0. assert (eq_symbol x s = true \/ eq_symbol x s = false). admit.
 destruct H4. rewrite H4 in H0. inversion H0. rewrite H6 in H3. 
-assert (x = s). admit. rewrite H5 in H3. simpl in  H3. assert (eq_symbol s s = true).
-admit. rewrite H7 in H3. rewrite H1 in H3. inversion H3.
-simpl in H3. apply IEAppAbs. admit. simpl. admit.
+assert (x = s). admit. rewrite H5 in H3. simpl in  H3. subst. 
+rewrite H4 in H3. rewrite H1 in H3. inversion H3.
+simpl in H3. apply IEAppAbs. admit. simpl. assert (shift (shift i2 (Some 1) 0) None 0 = i2).
+apply shift_inversion. rewrite H5. reflexivity.
 rewrite H4 in H0. inversion H0. simpl in H3. assert (eq_symbol s x = false). admit.
 rewrite H5 in H3. assert ((exists k, find_index l s = Some k) \/ find_index l s = None). apply some_or_none.
 destruct H7. destruct H7. rewrite H7 in H3. assert ((exists s, removenames v2 l = Some s) \/ removenames v2 l = None).
@@ -460,16 +607,55 @@ simpl in H1. rewrite H7 in H1. inversion H1. reflexivity. rewrite H8 in H3. inve
 inversion H3.
 
 intros. simpl in H0. assert (eq_symbol x s = true \/ eq_symbol x s = false). admit.
-destruct H4. rewrite H4 in H0. inversion H0. assert (x = s). admit.
-simpl in H3. 
-admit.
-admit.
-intros. 
-rewrite H4 in H0. assert (is_free_var s v2 = false). admit. rewrite H5 in H0. simpl in H0.
-assert ((exists s, subst x v2 t12 = Some s) \/ subst x v2 t12 = None). apply some_or_none.
-destruct H6. destruct H6. rewrite H6 in H0. apply IHt12 with (l:=l) (x:=x) (s:=Abst s x0) (v2:=v2).
+destruct H4. rewrite H4 in H0. inversion H0. subst. simpl in H1. simpl in H3.
+assert (x = s). admit. subst.
+assert ((exists i, removenames t12 (s :: l) = Some i) \/ removenames t12 (s :: l) = None). apply some_or_none.
+assert ((exists i, removenames t12 (s :: s :: l) = Some i) \/ removenames t12 (s :: s :: l) = None). apply some_or_none.
+destruct H5. destruct H5. destruct H6. destruct H6. rewrite H5 in H1. rewrite H6 in H3.
+assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
+destruct H7. destruct H7. rewrite H7 in H3. inversion H3. inversion H1.
+apply IEAppAbs. inversion H. subst. simpl in H7. 
+assert ((exists i, removenames t1 (x2 :: l) = Some i) \/ removenames t1 (x2 :: l) = None). apply some_or_none.
+destruct H8. destruct H8. rewrite H8 in H7. inversion H7. apply iv_Abst. rewrite H8 in H7. inversion H7.
+simpl. assert (shift (shift x (Some 1) 1) None 1 = x). apply shift_inversion.
+assert (x = shift (shift x (Some 1) 1) None 1). rewrite H8. reflexivity. rewrite H11.
+assert (index_subst 1 (shift (shift x1 (Some 1) 0) (Some 1) 0) x0 = x0).
+assert (s :: s :: l = nil ++ s :: s :: l). simpl. reflexivity. rewrite H12 in H6.
+apply subst_removenames_xx with (s:=(shift (shift x1 (Some 1) 0) (Some 1) 0)) in H6.
+simpl in H6. apply H6. rewrite H12. assert (shift x (Some 1) 1 = x0).
+assert (s :: l = nil ++ (s :: nil) ++ l). simpl. reflexivity. rewrite H13 in H5.
+apply removenames_xx with (c:=0) in H5. destruct H5. destruct H5. simpl in H5. rewrite H6 in H5.
+inversion H5. rewrite H14. reflexivity. simpl. reflexivity. rewrite H13. reflexivity.
+rewrite H7 in H3. inversion H3. rewrite H6 in H3. inversion H3. rewrite H5 in H1. inversion H1.
+admit. (* hard*)
+
+intros. simpl in H0.
+assert ((exists s, subst x v2 t12_1 = Some s) \/ subst x v2 t12_1 = None). apply some_or_none.
+assert ((exists s, subst x v2 t12_2 = Some s) \/ subst x v2 t12_2 = None). apply some_or_none.
+destruct H4. destruct H4. destruct H5. destruct H5.
+rewrite H4 in H0. rewrite H5 in H0. inversion H0. subst. simpl in H1.
+assert ((exists i, removenames x0 l = Some i) \/ removenames x0 l = None). apply some_or_none.
+assert ((exists i, removenames x1 l = Some i) \/ removenames x1 l = None). apply some_or_none.
+destruct H6. destruct H6. destruct H7. destruct H7. rewrite H6 in H1. rewrite H7 in H1. 
+inversion H1. simpl in H3.
+assert ((exists i, removenames t12_1 (x :: l) = Some i) \/ removenames t12_1 (x :: l) = None). apply some_or_none.
+assert ((exists i, removenames t12_2 (x :: l) = Some i) \/ removenames t12_2 (x :: l) = None). apply some_or_none.
+destruct H8. destruct H8. destruct H10. destruct H10. rewrite H8 in H3. rewrite H10 in H3.
+assert ((exists i, removenames v2 l = Some i) \/ removenames v2 l = None). apply some_or_none.
+destruct H11. destruct H11. rewrite H11 in H3. inversion H3. apply IEAppAbs.
+inversion H. subst. simpl in H11. 
+assert ((exists i, removenames t1 (x7 :: l) = Some i) \/ removenames t1 (x7 :: l) = None). apply some_or_none.
+destruct H9. destruct H9. rewrite H9 in H11. inversion H11. apply iv_Abst. rewrite H9 in H11. inversion H11.
+simpl. assert (shift_step (IndApp (IndAbst x4) x6) x2). apply IHt12_1 with (l:=l) (s:=x0) (x:=x) (v2:=v2).
+apply H6. apply H. admit. apply H4. simpl. rewrite H8. rewrite H11. reflexivity.
+assert (shift_step (IndApp (IndAbst x5) x6) x3). apply IHt12_2 with (l:=l) (s:=x1) (x:=x) (v2:=v2).
+apply H7. apply H. admit. apply H5. simpl. rewrite H10. rewrite H11. reflexivity.
+
+
+simpl in H9.
+
+
 admit. 
-Admitted.
 
 
 Fixpoint max_symbol_impl (t: term): nat :=

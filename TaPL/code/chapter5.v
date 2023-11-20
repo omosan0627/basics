@@ -586,8 +586,6 @@ rewrite H9 in H4. rewrite H10 in H4. inversion H4. rewrite H9 in H5. inversion H
 rewrite H8 in H1. inversion H1. rewrite H6 in H3. rewrite H7 in H3. inversion H3. rewrite H6 in H1.
 inversion H1.
 
-
-
 intros.
 generalize dependent x. generalize dependent i1. generalize dependent v2. generalize dependent s.
 generalize dependent l. generalize dependent i2.

@@ -6,6 +6,9 @@
 (* Constructors: 適用可能なconstructorを1番からapplyしていく。 *)
 (* refine: exactでplaceholder使える *)
 (* replace: assert (a = b) as H. rewrite Hを一気にやる。便利すぎ *)
+
+(* assertだいぶいらなくなると思うよ～*)
+
 (* rewrite _ , _: 複数一気に書き換え *)
 (* lia:つよい*)
 (* elim: inductionの方法らしいが…何か古いみたいで推奨されていないと書いてあった*)
@@ -24,7 +27,7 @@
 (* 高階述語論理? 1階との差?*)
 (* 41Semicolonさんのテクニックをとりあえず盗もう。*)
 (* coqのdocumentationとかgitの使い方?*)
-(* つまり型環境が前提で、->が関数の形です。forallが全称型、existsが依存型となっている*)
+(* つまり型環境が前提で、->が関数の形です。Propが型。forallが全称型、existsが依存型となっている*)
 Definition true_or_false b: {b = true} + {b = false}.
 pose (omo := {b = true} + {b = false}). (* 足すだけ *)
 set (foo := {b = true} + {b = false}).  (* 置き換えもする*) unfold foo.

@@ -433,16 +433,45 @@ simpl. assert (k' <? length l1 = true). admit. rewrite H4. reflexivity.
 destruct H3. rewrite H2 in H3. inversion H3. destruct H2. destruct H3. destruct H3.
 symmetry in Heqo0. apply find_index_concat in Heqo0. destruct Heqo0.
 rewrite H2 in H5. inversion H5. destruct H5. destruct H5. destruct H6. destruct H5.
-simpl in H5. remember (eq_symbol s y). destruct b. assert (s = y). admit.
-subst. simpl in H1. symmetry in Heqb; now rewrite Heqb in H1. rewrite H3 in H5.
+simpl in H5. remember (eq_symbol s y). destruct b. destruct s. destruct y.
+simpl in Heqb. symmetry in Heqb; apply eq_nat_equal in Heqb. subst.
+simpl in H1. assert (eq_nat n0 n0 = true). apply eq_nat_eq. now rewrite H1 in H4.
+rewrite H3 in H5.
 inversion H5. inversion H. inversion H0. subst. simpl. 
 remember (x + length l1 <? length l1). destruct b. symmetry in Heqb0.
 apply Nat.ltb_lt in Heqb0. lia. remember (S (x + length l1) <? length l1). destruct b.
 symmetry in Heqb1. apply Nat.ltb_lt in Heqb1. lia.
 assert (x + length l1 + 2 = S (x + length l1 + 1)). lia.
 rewrite H4. reflexivity. admit. easy.
-admit.
-admit.
+
+intros. simpl in H1. remember (eq_symbol y s) as b; destruct b.
+destruct y. destruct s. simpl in Heqb. symmetry in Heqb. apply eq_nat_equal in Heqb.
+subst. simpl in H. simpl in H0.
+remember (removenames t (Symb n0 :: l1 ++ l2)) as o; destruct o. symmetry in Heqo.
+pose proof (removenames_xx t (Symb n0) nil _ _ _ (length l1) Heqo).
+simpl in H2. assert (length l1 = length l1). reflexivity. apply H2 in H3.
+destruct H3. destruct H3. rewrite H3 in H0. inversion H. inversion H0. subst.
+simpl. admit. inversion H. symmetry in Heqb.
+simpl in H. simpl in H0. 
+remember (removenames t (Symb n0 :: l1 ++ l2)) as o; destruct o.
+
+
+intros. simpl in H. simpl in H0. 
+remember (removenames t1 (l1 ++ l2)) as o0. 
+remember (removenames t2 (l1 ++ l2)) as o1.
+remember (removenames t1 (l1 ++ y :: l2)) as o2.
+remember (removenames t2 (l1 ++ y :: l2)) as o3.
+destruct o0, o1. destruct o2, o3. symmetry in Heqo0, Heqo1, Heqo2, Heqo3.
+simpl in H1. 
+remember (is_free_var y t1) as b0.
+remember (is_free_var y t2) as b1.
+destruct b0, b1.
+now simpl in H1. now simpl in H1. now simpl in H1. symmetry in Heqb0, Heqb1.
+pose proof (IHt1 _ _ _ _ _ Heqo0 Heqo2 Heqb0).
+pose proof (IHt2 _ _ _ _ _ Heqo1 Heqo3 Heqb1).
+inversion H. inversion H0. simpl. rewrite H2. rewrite H3. reflexivity.
+inversion H0. inversion H0. inversion H0.
+inversion H. inversion H. inversion H.
 Admitted.
 
 

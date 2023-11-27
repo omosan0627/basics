@@ -7,7 +7,7 @@ Inductive term : Type :=
   | Pred: term -> term
   | IsZero: term -> term.
 
-Notation "'If' A 'Then' B 'Else' C" := (IfThenElse A B C) (at level 40).
+Notation "'If' A 'Then' B 'Else' C" := (IfThenElse A B C) (at level 60).
 
 Inductive nvalue: term -> Prop :=
 | nv_zero: nvalue O
@@ -33,7 +33,7 @@ Inductive type_bind: term -> ttype -> Prop :=
   | TPred: forall t1, type_bind t1 Nat -> type_bind (Pred t1) Nat
   | TIsZero: forall t1, type_bind t1 Nat -> type_bind (IsZero t1) Bool.
 
-Notation "A : B" := (type_bind A B) (at level 45). (* 低い方が先に適用される? *)
+Notation "A : B" := (type_bind A B) (at level 65). (* 低い方が先に適用される? *)
 
 Lemma lem8_2_2_True: forall T, True : T -> T = Bool.
 intros. inversion H. auto. Qed.
@@ -86,7 +86,7 @@ Inductive step: term -> term-> Prop :=
   | EIsZeroSucc: forall nv, nvalue nv -> step (IsZero (Succ nv)) False
   | EIsZero: forall t1 t1', step t1 t1' -> step (IsZero t1) (IsZero t1').
 
-Notation "A --> B" := (step A B) (at level 45).
+Notation "A --> B" := (step A B) (at level 65).
 
 Theorem thm8_3_2: forall t T, t : T -> value t \/ (exists t', t --> t').
 intros. induction H.

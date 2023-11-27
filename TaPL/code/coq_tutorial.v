@@ -28,12 +28,13 @@
 (* 41Semicolonさんのテクニックをとりあえず盗もう。*)
 (* coqのdocumentationとかgitの使い方?*)
 (* つまり型環境が前提で、->が関数の形です。Propが型。forallが全称型、existsが依存型となっている*)
+(* notation: 記号を決められる。levelは70が=と不等式, 50が+-なのでその間がよさそう。低いほど早くbindする*)
 Definition true_or_false b: {b = true} + {b = false}.
 pose (omo := {b = true} + {b = false}). (* 足すだけ *)
 set (foo := {b = true} + {b = false}).  (* 置き換えもする*) unfold foo.
 destruct b. left. reflexivity. right. reflexivity. Qed.
 
-(* pose proof -> 関数適用して前提に加えてくれる。*)
+(* pose proof -> 関数適用して前提に加えてくれる。実は前提に大してならapply _ in _でOK*)
 Definition thm_succ: forall n m, n + m = m + n.
 induction n. intros. simpl. apply plus_n_O.
 intros. pose proof (IHn (S m)). simpl in H. simpl. symmetry. admit. Admitted.

@@ -441,8 +441,8 @@ inversion H5. inversion H. inversion H0. subst. simpl.
 remember (x + length l1 <? length l1). destruct b. symmetry in Heqb0.
 apply Nat.ltb_lt in Heqb0. lia. remember (S (x + length l1) <? length l1). destruct b.
 symmetry in Heqb1. apply Nat.ltb_lt in Heqb1. lia.
-assert (x + length l1 + 2 = S (x + length l1 + 1)). lia.
-rewrite H4. reflexivity. admit. easy.
+replace (x + length l1 + 2) with (S (x + length l1 + 1)). reflexivity. lia.
+admit. easy.
 
 intros. simpl in H1. remember (eq_symbol y s) as b; destruct b.
 destruct y. destruct s. simpl in Heqb. symmetry in Heqb. apply eq_nat_equal in Heqb.
@@ -453,8 +453,14 @@ simpl in H2. assert (length l1 = length l1). reflexivity. apply H2 in H3.
 destruct H3. destruct H3. rewrite H3 in H0. inversion H. inversion H0. subst.
 simpl. admit. inversion H. symmetry in Heqb.
 simpl in H. simpl in H0. 
-remember (removenames t (Symb n0 :: l1 ++ l2)) as o; destruct o.
-
+remember (removenames t (s :: l1 ++ l2)) as o; destruct o.
+remember (removenames t (s :: l1 ++ y :: l2)) as o; destruct o.
+symmetry in Heqo, Heqo0.
+replace (s :: l1 ++ l2) with ((s :: l1) ++ l2) in Heqo.
+replace (s :: l1 ++ y :: l2) with ((s :: l1) ++ (y :: l2)) in Heqo0.
+pose proof (IHt _ _ _ _ _ Heqo Heqo0 H1). inversion H. inversion H0.
+simpl. simpl in H2. rewrite H2. reflexivity. simpl. reflexivity. simpl. reflexivity.
+inversion H0. inversion H.
 
 intros. simpl in H. simpl in H0. 
 remember (removenames t1 (l1 ++ l2)) as o0. 

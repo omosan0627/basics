@@ -5,7 +5,7 @@
 (* 使えそうな補題を検索する方法を知りたい *)
 (* Constructors: 適用可能なconstructorを1番からapplyしていく。 *)
 (* refine: exactでplaceholder使える *)
-(* replace: assert (a = b) as H. rewrite Hを一気にやる。便利すぎ *)
+(* replace a with b: assert (a = b) as H. rewrite Hを一気にやる。便利すぎ *)
 
 (* assertだいぶいらなくなると思うよ～*)
 

@@ -24,6 +24,8 @@ Notation "'λ' x : T , t " := (Abst x T t) (at level 60, x at level 99, T at lev
 Notation "t1 ◦ t2" := (App t1 t2) (at level 59, left associativity).
 
 Inductive value: term -> Prop :=
+  | v_True: value True
+  | v_False: value False
   | v_Abst: forall x T t, value (λ x : T , t).
 
 Notation "A → B" := (Func A B) (at level 58, right associativity).
@@ -134,3 +136,21 @@ intros. inversion H. auto. Qed.
 Lemma lem9_3_1_TIf: forall Γ t1 t2 t3 R, Γ |- If t1 Then t2 Else t3 : R ->
 Γ |- t1 : Bool /\ Γ |- t2 : R /\ Γ |- t3 : R.
 intros. inversion H. auto. Qed.
+
+Theorem thm9_3_3: forall Γ t T1 T2, Γ |- t : T1 -> Γ |- t : T2 -> T1 = T2.
+intros. generalize dependent T2. induction H.
+- intros. apply lem9_3_1_TTrue in H0. auto.
+- intros. apply lem9_3_1_TFalse in H0. auto.
+- intros. apply lem9_3_1_TIf in H2. destruct H2. destruct H3. now apply IHtype_step2 in H3.
+- intros. apply lem9_3_1_TVar in H0. rewrite H in H0. now inversion H0.
+- intros. apply lem9_3_1_TAbs in H0. destruct H0. destruct H0. apply IHtype_step in H0.
+subst. reflexivity.
+- intros. apply lem9_3_1_TApp in H1. destruct H1. destruct H1. apply IHtype_step1 in H1.
+apply IHtype_step2 in H2. subst. now inversion H1. Qed.
+
+Lemma lem9_3_4_1: forall v Γ, value v -> Γ |- v : Bool -> v = True \/ v = False.
+intros. inversion H. auto. auto. subst. inversion H0. Qed.
+Lemma lem9_3_4_2: forall v T1 T2 Γ, value v -> Γ |- v : T1 → T2 -> exists x t2, v = λ x : T1 , t2.
+intros. destruct H. inversion H0. inversion H0. inversion H0. subst.
+exists x, t. reflexivity. Qed.
+

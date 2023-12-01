@@ -44,7 +44,7 @@ Fixpoint FV (x: symbol) (t:term): bool :=
   | λ y : T , t1 => if eq_symbol x y then false else FV x t1
   | App t1 t2 => FV x t1 || FV x t2
   | If t1 Then t2 Else t3 => FV x t1 || FV x t2 || FV x t3
-  | _ => true
+  | _ => false
   end.
 
 Fixpoint subst (x: symbol) (s:term) (t: term): option term :=
@@ -79,8 +79,8 @@ Inductive term_step: term -> term -> Prop :=
     -> (term_step (If t1 Then t2 Else t3) (If t1' Then t2 Else t3))
     | EApp1: forall t1 t1' t2, term_step t1 t1' -> term_step (App t1 t2) (App t1' t2)
     | EApp2: forall v1 t2 t2', value v1 -> term_step t2 t2' -> term_step (App v1 t2) (App v1 t2')
-    | EAppAbs: forall x T t12 v2 s, value v2 -> [x |→ v2] t12 = Some s ->
-    term_step ((λ x : T , t12) ◦ v2) s.
+    | EAppAbs: forall x y T t12 v2 s1 s2, value v2 -> [x |→ Var y] t12 = Some s1 
+    -> [y |→ v2] s1 = Some s2 -> term_step ((λ x : T , t12) ◦ v2) s2. (* アルファ変換を許す*)
 
 Notation "t1 -→ t2" := (term_step t1 t2) (at level 61).
 
@@ -104,11 +104,6 @@ Inductive type_step: list (symbol * type) -> term -> type -> Prop :=
     -> type_step Γ (t1 ◦ t2) T12.
 
 Notation "Γ |- t : T" := (type_step Γ t T) (at level 61, t at level 99).
-
-Theorem just_testing_notations: forall x t1 t Γ, 
-    [x |→ (λ x : (Bool → Bool) , If (Var x) Then t ◦ t Else t ◦ (Var x) ◦ (Var x))] t1 = Some t ->
-((x, Bool → Bool → Bool) :: Γ) |- λ x : (Bool → Bool) , t : (Bool → Bool → Bool).
-Admitted.
 
 Lemma ex9_2_2_1: forall f, {f : Bool → Bool} :: nil |- Var f ◦ If False Then True Else False : Bool.
 intros. refine (TApp _ _ Bool _ _ _ _). constructor. simpl.
@@ -154,3 +149,85 @@ Lemma lem9_3_4_2: forall v T1 T2 Γ, value v -> Γ |- v : T1 → T2 -> exists x 
 intros. destruct H. inversion H0. inversion H0. inversion H0. subst.
 exists x, t. reflexivity. Qed.
 
+Lemma subst_alpha_exists: forall t1 t2 x, exists y s1 s2, 
+[x |→ Var y] t1 = Some s1 /\ [y |→ t2] s1 = Some s2.
+
+(* Lemma subst_alpha_unique: forall t1 t2 x y y' s1 s2 s1' s2',
+Some s1 = [x |→ Var y] t1 -> Some s2 = [y |→ t2] s1 ->
+Some s1' = [x |→ Var y'] t1 -> Some s2' = [y' |→ t2] s1' -> s2 = s2'.
+induction t1.
+- intros. simpl in H. inversion H. subst. inversion H0. simpl in H1. inversion H1.
+  subst. simpl in H2. inversion H2. reflexivity.
+- intros. simpl in H. inversion H. subst. inversion H0. simpl in H1. inversion H1.
+  subst. simpl in H2. inversion H2. reflexivity.
+- intros. simpl in H. 
+  remember ([x |→ Var y] t1_1) as o1.
+  remember ([x |→ Var y] t1_2) as o2.
+  remember ([x |→ Var y] t1_3) as o3.
+  destruct o1. destruct o2. destruct o3. inversion H. subst. simpl in H0.
+  remember ([y |→ t2] t) as p1.
+  remember ([y |→ t2] t0) as p2.
+  remember ([y |→ t2] t1) as p3.
+  destruct p1. destruct p2. destruct p3. inversion H0. simpl in H1.
+  remember ([x |→ Var y'] t1_1) as o1'.
+  remember ([x |→ Var y'] t1_2) as o2'.
+  remember ([x |→ Var y'] t1_3) as o3'.
+  destruct o1'. destruct o2'. destruct o3'. inversion H1. subst. simpl in H2.
+  remember ([y' |→ t2] t6) as p1'.
+  remember ([y' |→ t2] t7) as p2'.
+  remember ([y' |→ t2] t8) as p3'.
+  destruct p1'. destruct p2'. destruct p3'. inversion H2.
+  pose proof (IHt1_1 _ _ _ _ _ _ _ _ Heqo1 Heqp1 Heqo1' Heqp1').
+  pose proof (IHt1_2 _ _ _ _ _ _ _ _ Heqo2 Heqp2 Heqo2' Heqp2').
+  pose proof (IHt1_3 _ _ _ _ _ _ _ _ Heqo3 Heqp3 Heqo3' Heqp3').
+  now subst.
+  inversion H2. inversion H2. inversion H2. inversion H1. inversion H1. inversion H1.
+  inversion H0. inversion H0. inversion H0. inversion H. inversion H. inversion H.
+- intros. simpl in H. remember (eq_symbol x s). destruct b.
+  + inversion H. subst. simpl in H0. remember (eq_symbol y y). destruct b.
+  inversion H0. simpl in H1. symmetry in Heqb. rewrite Heqb in H1. inversion H1.
+  subst. simpl in H2. remember (eq_symbol y' y'). destruct b. now inversion H2.
+  pose proof (eq_symbol_refl y'). rewrite H3 in Heqb1. inversion Heqb1.
+  pose proof (eq_symbol_refl y). rewrite H3 in Heqb0. inversion Heqb0.
+  + admit.
+- intros. admit.
+- admit. Admitted. *)
+
+Theorem thm9_3_5: forall t T , nil |- t : T -> value t \/ exists t', t -→ t'.
+intros. remember nil as Γ. induction H.
+- left. constructor.
+- left. constructor.
+- right. destruct IHtype_step1. apply HeqΓ. inversion H2.
+  + exists t2. constructor.
+  + exists t3. constructor.
+  + subst. inversion H.
+  + destruct H2. exists (If x Then t2 Else t3). now constructor.
+- rewrite HeqΓ in H. simpl in H. inversion H.
+- left. constructor.
+- pose proof (IHtype_step1 HeqΓ). pose proof (IHtype_step2 HeqΓ). destruct H1. inversion H1.
+  + subst. inversion H.
+  + subst. inversion H.
+  + right. subst. destruct H2.
+    * pose proof (subst_alpha_exists x t t2). destruct H3. destruct H3. destruct H3.
+      destruct H3. exists x2. refine (EAppAbs _ _ _ _ _ _ _ H2 H3 H4).
+    * destruct H2. remember (λ x : T, t) as t'. exists (t' ◦ x0). now constructor.
+  + destruct H1. right. exists (x ◦ t2). now constructor. Qed.
+
+Lemma lem9_3_8: forall Γ x y s S t T t1' t2', {x : S} :: Γ |- t : T -> Γ |- s : S 
+-> [x |→ Var y] t = Some t1' -> [y |→ s] t1' = Some t2' -> Γ |- t2' : T.
+Admitted.
+
+Theorem thm9_3_9: forall Γ t t' T, Γ |- t : T -> t -→ t' -> Γ |- t' : T.
+intros. generalize dependent t'. induction H.
+- intros. inversion H0.
+- intros. inversion H0.
+- intros. inversion H2.
+  + subst. auto.
+  + subst. auto.
+  + subst. constructor. refine (IHtype_step1 _ H7). auto. auto.
+- intros. inversion H0.
+- intros. inversion H0.
+- intros. inversion H1.
+  + subst. pose proof (IHtype_step1 _ H5). refine (TApp _ _ _ _ _ H2 H0).
+  + subst. pose proof (IHtype_step2 _ H6). refine (TApp _ _ _ _ _ H H2).
+  + subst. inversion H. subst. refine (lem9_3_8 _ _ _ _ _ _ _ _ _ H6 H0 H5 H7). Qed.

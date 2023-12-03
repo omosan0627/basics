@@ -196,20 +196,42 @@ now rewrite H.
 intros. simpl. simpl in H. replace (n =? 0) with false.
 apply IHΓ'. lia. symmetry. apply Nat.eqb_neq. lia. Qed.
 
-Lemma get_var_type_gt: forall Γ' k S T Γ, length Γ' < k -> 
-get_var_type k (Γ' ++ S :: Γ) = Some T -> get_var_type (pred k) (Γ' ++ Γ) = Some T.
-induction Γ'. intros. simpl. simpl in H. simpl in H0.
-replace (k =? 0) with false in H0. apply H0. symmetry. apply Nat.eqb_neq. lia.
-intros. simpl in H. simpl in H0. replace (k =? 0) with false in H0.
-pose proof (IHΓ' (pred k) S T Γ). simpl. replace (pred k =? 0) with false.
-assert (length Γ' < pred k). lia. now pose proof (H1 H2 H0). symmetry.
-apply Nat.eqb_neq. lia. symmetry. apply Nat.eqb_neq. lia. Qed.
+Lemma get_var_type_gt: forall Γ' k T Γ, length Γ' < k -> 
+get_var_type k (Γ' ++ T :: Γ) = get_var_type (pred k) (Γ' ++ Γ).
+induction Γ'. intros. simpl. simpl in H. replace (k =? 0) with false.
+reflexivity. symmetry. apply Nat.eqb_neq. lia.
+intros. simpl in H. simpl. replace (k =? 0) with false.
+replace (pred k =? 0) with false. 
+apply IHΓ'. lia. symmetry. apply Nat.eqb_neq. lia. symmetry. apply Nat.eqb_neq. lia.
+Qed.
 
 Lemma get_var_type_lt: forall Γ' Γ k, length Γ' > k ->
 get_var_type k (Γ' ++ Γ) = get_var_type k Γ'. induction Γ'.
 intros. simpl in H. inversion H. intros. simpl. simpl in H.
-remember (k =? 0). destruct b. reflexivity. refine (IHΓ' _ _ _). 
+remember (k =? 0). destruct b. reflexivity. apply IHΓ'. 
 symmetry in Heqb. apply Nat.eqb_neq in Heqb. lia. Qed.
+
+Lemma type_shift: forall Γ' Γ t T S, Γ' ++ Γ |- t : T -> 
+Γ' ++ S :: Γ |- shift (length Γ') 1 t : T.
+intros. remember (Γ' ++ Γ) as Γ''. generalize dependent Γ'. generalize dependent Γ.
+generalize dependent S. induction H.
+- intros. simpl. constructor.
+- intros. simpl. constructor.
+- intros. simpl. constructor. now apply IHtype_step1. now apply IHtype_step2. 
+  now apply IHtype_step3.
+- intros. simpl. remember (length Γ' <=? k). destruct b. 
+  + constructor. pose proof (get_var_type_gt Γ' (k + 1) S Γ0). assert (length Γ' < k + 1).
+    symmetry in Heqb. apply Nat.leb_le in Heqb. lia. apply H0 in H1. rewrite H1.
+    replace (pred (k + 1)) with k.  rewrite HeqΓ'' in H. apply H. lia.
+  + constructor. pose proof (get_var_type_lt Γ' (S :: Γ0) k).
+    pose proof (get_var_type_lt Γ' Γ0 k). assert (length Γ' > k). symmetry in Heqb. 
+    apply Nat.leb_nle in Heqb. lia. pose proof (H1 H2). pose proof (H0 H2).
+    rewrite HeqΓ'' in H. rewrite H3 in H. rewrite H4. now rewrite H.
+- intros. simpl. constructor. pose proof (IHtype_step S Γ0 (T1 :: Γ')).
+subst. assert (T1 :: Γ' ++ Γ0 = (T1 :: Γ') ++ Γ0). now simpl. apply H0 in H1.
+replace (Datatypes.S (length Γ')) with (length (T1 :: Γ')). apply H1. simpl. lia.
+- intros. simpl. refine (TApp _ _ T11 _ _ _ _). now apply IHtype_step1.
+  now apply IHtype_step2. Qed.
 
 
 (* 賢く帰納法回すと行けます。*)
@@ -233,12 +255,13 @@ induction H.
   pose proof (get_var_type_eq Γ' (length Γ') S Γ0). assert (length Γ' = length Γ').
   reflexivity. apply H0 in H3. rewrite H3 in H. inversion H. now subst. 
   simpl. remember (n <=? k). destruct b.
-  symmetry in Heqb. apply Nat.eqb_neq in Heqb. symmetry in Heqb0. apply Nat.leb_le in Heqb0.
-  assert (n < k). lia. constructor. subst. apply get_var_type_gt with S. apply H2.
-  apply H. constructor. rewrite HeqΓ'' in H. 
-  pose proof (get_var_type_lt Γ' (S :: Γ0) k). pose proof (get_var_type_lt Γ' Γ0 k).
-  assert (length Γ' > k). symmetry in Heqb0. apply Nat.leb_nle in Heqb0. lia.
-  pose proof (H2 H4). pose proof (H3 H4). rewrite H5 in H. rewrite H6. rewrite H. reflexivity.
+  + symmetry in Heqb. apply Nat.eqb_neq in Heqb. symmetry in Heqb0. apply Nat.leb_le in Heqb0.
+    assert (n < k). lia. constructor. subst. 
+    pose proof (get_var_type_gt Γ' k S Γ0 H2). now rewrite H0 in H.
+  + constructor. rewrite HeqΓ'' in H. 
+    pose proof (get_var_type_lt Γ' (S :: Γ0) k). pose proof (get_var_type_lt Γ' Γ0 k).
+    assert (length Γ' > k). symmetry in Heqb0. apply Nat.leb_nle in Heqb0. lia.
+    pose proof (H2 H4). pose proof (H3 H4). rewrite H5 in H. rewrite H6. rewrite H. reflexivity.
 - intros. simpl. constructor.
   pose proof (IHtype_step (T1 :: Γ') Γ0 S).
   assert (T1 :: Γ = (T1 :: Γ') ++ S :: Γ0). rewrite HeqΓ''. simpl.
@@ -248,10 +271,12 @@ induction H.
   pose proof (shift_addition s 0 1 (n + 1)). rewrite H6.
   replace (1 + (n + 1)) with (n + 1 + 1).
   now replace (T1 :: Γ' ++ Γ0) with ((T1 :: Γ') ++ Γ0).
-  lia. lia. admit.
+  lia. lia. pose proof (type_shift nil (Γ' ++ Γ0) (shift 0 n s) S T1). simpl in H6.
+  apply H6 in H1. replace (shift 0 (n + 1) s) with (shift 0 1 (shift 0 n s)).
+  apply H1. replace (n + 1) with (1 + n). apply shift_addition. lia.
 - intros. simpl. refine (TApp _ _ T11 _ _ _ _). 
   refine (IHtype_step1 _ _ _ _ _ _ H1 H2). auto.
-  refine (IHtype_step2 _ _ _ _ _ _ H1 H2). auto. Admitted.
+  refine (IHtype_step2 _ _ _ _ _ _ H1 H2). auto. Qed.
 
 Corollary lem9_3_8: forall Γ S t T s, S :: Γ |- t : T -> Γ |- s : S
 -> Γ |- reverse_shift 0 ([0 |→ shift 0 1 s] t) : T.

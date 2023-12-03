@@ -156,7 +156,7 @@ intros. remember nil as Γ. induction H.
   + destruct H1. right. exists (x ◦ t2). now constructor. Qed.
 
 Lemma lem9_3_8: forall S Γ Γ' t T, Γ' ++ S :: Γ |- t : T -> forall n s, Γ' ++ Γ |- s : S 
--> length Γ' = n ->  Γ' ++ Γ |- reverse_shift n ([n |→ shift n 1 s] t) : T.
+-> length Γ' = n ->  Γ' ++ Γ |- reverse_shift 0 ([n |→ shift 0 (S n) s] (shift 0 n t)) : T.
 intros ? ? ? ? ? ?. remember (Γ' ++ S :: Γ) as Γ''. generalize dependent S. generalize dependent Γ.
 generalize dependent Γ'. 
 induction H.

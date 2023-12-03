@@ -155,22 +155,110 @@ intros. remember nil as Γ. induction H.
     * destruct H2. remember (λ T, t) as t'. exists (t' ◦ x). now constructor.
   + destruct H1. right. exists (x ◦ t2). now constructor. Qed.
 
-Lemma lem9_3_8: forall S Γ Γ' t T, Γ' ++ S :: Γ |- t : T -> forall n s, Γ' ++ Γ |- s : S 
--> length Γ' = n ->  Γ' ++ Γ |- reverse_shift 0 ([n |→ shift 0 (S n) s] (shift 0 n t)) : T.
-intros ? ? ? ? ? ?. remember (Γ' ++ S :: Γ) as Γ''. generalize dependent S. generalize dependent Γ.
-generalize dependent Γ'. 
+Lemma shift_id: forall s n, shift n 0 s = s. induction s.
+- now simpl.
+- now simpl.
+- intros. simpl. now rewrite IHs1, IHs2, IHs3.
+- intros. simpl. remember (n0 <=? n). destruct b. now replace (n + 0) with n. reflexivity.
+- intros. simpl. rewrite IHs. reflexivity.
+- intros. simpl. rewrite IHs1. rewrite IHs2. reflexivity.
+Qed.
+
+Lemma shift_inversion: forall s c n, reverse_shift (c + n) (shift c (n + 1) s) = shift c n s.
+induction s.
+- intros. now simpl.
+- intros. now simpl.
+- intros. simpl. now rewrite IHs1, IHs2, IHs3.
+- intros. simpl. remember (c <=? n). destruct b. simpl. 
+replace (c + n0 <=? n + (n0 + 1)) with true. replace (pred (n + (n0 + 1))) with (n + n0).
+reflexivity. lia. symmetry. symmetry in Heqb. apply Nat.leb_le. apply Nat.leb_le in Heqb.
+lia. simpl. replace (c + n0 <=? n) with false. reflexivity.
+symmetry. symmetry in Heqb. apply Nat.leb_nle. apply Nat.leb_nle in Heqb. lia. 
+- intros. simpl. replace (S (c + n)) with ((S c) + n). now rewrite IHs. lia.
+- intros. simpl. now rewrite IHs1, IHs2. Qed.
+
+Lemma shift_addition: forall s n d1 d2, shift n d1 (shift n d2 s) = shift n (d1 + d2) s.
+induction s.
+- intros. now simpl.
+- intros. now simpl.
+- intros. simpl. now rewrite IHs1, IHs2, IHs3.
+- intros. simpl. remember (n0 <=? n). destruct b. simpl.
+  replace (n0 <=? n + d2) with true. replace (n + d2 + d1) with (n + (d1 + d2)).
+  reflexivity. lia. symmetry. symmetry in Heqb. apply Nat.leb_le.
+  apply Nat.leb_le in Heqb. lia. simpl. symmetry in Heqb; rewrite Heqb. reflexivity.
+- intros. simpl. rewrite IHs. reflexivity.
+- intros. simpl. now rewrite IHs1, IHs2. Qed.
+
+Lemma get_var_type_eq: forall Γ' n T Γ, length Γ' = n -> 
+get_var_type n (Γ' ++ T :: Γ) = Some T. induction Γ'.
+simpl. intros. replace (n =? 0) with true. reflexivity. symmetry. apply Nat.eqb_eq.
+now rewrite H.
+intros. simpl. simpl in H. replace (n =? 0) with false.
+apply IHΓ'. lia. symmetry. apply Nat.eqb_neq. lia. Qed.
+
+Lemma get_var_type_gt: forall Γ' k S T Γ, length Γ' < k -> 
+get_var_type k (Γ' ++ S :: Γ) = Some T -> get_var_type (pred k) (Γ' ++ Γ) = Some T.
+induction Γ'. intros. simpl. simpl in H. simpl in H0.
+replace (k =? 0) with false in H0. apply H0. symmetry. apply Nat.eqb_neq. lia.
+intros. simpl in H. simpl in H0. replace (k =? 0) with false in H0.
+pose proof (IHΓ' (pred k) S T Γ). simpl. replace (pred k =? 0) with false.
+assert (length Γ' < pred k). lia. now pose proof (H1 H2 H0). symmetry.
+apply Nat.eqb_neq. lia. symmetry. apply Nat.eqb_neq. lia. Qed.
+
+Lemma get_var_type_lt: forall Γ' Γ k, length Γ' > k ->
+get_var_type k (Γ' ++ Γ) = get_var_type k Γ'. induction Γ'.
+intros. simpl in H. inversion H. intros. simpl. simpl in H.
+remember (k =? 0). destruct b. reflexivity. refine (IHΓ' _ _ _). 
+symmetry in Heqb. apply Nat.eqb_neq in Heqb. lia. Qed.
+
+
+(* 賢く帰納法回すと行けます。*)
+
+Lemma lem9_3_8_prep: forall S Γ Γ' t T, Γ' ++ S :: Γ |- t : T -> forall n s,
+length Γ' = n -> Γ' ++ Γ |- shift 0 n s : S -> 
+Γ' ++ Γ |- reverse_shift n ([n |→ shift 0 (n + 1) s] t) : T.
+intros ? ? ? ? ? ?. remember (Γ' ++ S :: Γ) as Γ''.
+generalize dependent S. generalize dependent Γ.
+generalize dependent Γ'.
 induction H.
 - intros. simpl. constructor.
 - intros. simpl. constructor.
-- intros. admit.
-  (* + refine (IHtype_step1 Γ0 S HeqΓ'' s H2).
-  + refine (IHtype_step2 Γ0 S HeqΓ'' s H2).
-  + refine (IHtype_step3 Γ0 S HeqΓ'' s H2). *)
-- intros. admit.
-- intros. simpl. constructor. replace (T1 :: Γ' ++ Γ0) with ((T1 :: Γ') ++ Γ0).
+- intros. simpl. constructor. 
+  + refine (IHtype_step1 _ _ _ HeqΓ'' _ _ H2 H3).
+  + refine (IHtype_step2 _ _ _ HeqΓ'' _ _ H2 H3).
+  + refine (IHtype_step3 _ _ _ HeqΓ'' _ _ H2 H3).
+- intros. simpl. remember (k =? n). destruct b. 
+  pose proof (shift_inversion s 0 n). simpl in H2.
+  rewrite H2. symmetry in Heqb. apply Nat.eqb_eq in Heqb. subst. 
+  pose proof (get_var_type_eq Γ' (length Γ') S Γ0). assert (length Γ' = length Γ').
+  reflexivity. apply H0 in H3. rewrite H3 in H. inversion H. now subst. 
+  simpl. remember (n <=? k). destruct b.
+  symmetry in Heqb. apply Nat.eqb_neq in Heqb. symmetry in Heqb0. apply Nat.leb_le in Heqb0.
+  assert (n < k). lia. constructor. subst. apply get_var_type_gt with S. apply H2.
+  apply H. constructor. rewrite HeqΓ'' in H. 
+  pose proof (get_var_type_lt Γ' (S :: Γ0) k). pose proof (get_var_type_lt Γ' Γ0 k).
+  assert (length Γ' > k). symmetry in Heqb0. apply Nat.leb_nle in Heqb0. lia.
+  pose proof (H2 H4). pose proof (H3 H4). rewrite H5 in H. rewrite H6. rewrite H. reflexivity.
+- intros. simpl. constructor.
   pose proof (IHtype_step (T1 :: Γ') Γ0 S).
   assert (T1 :: Γ = (T1 :: Γ') ++ S :: Γ0). rewrite HeqΓ''. simpl.
-  reflexivity. pose proof (H2 H3 (n + 1) s). simpl in H4.
+  reflexivity. pose proof (H2 H3 (n + 1) s).
+  assert (length (T1 :: Γ') = n + 1). simpl. rewrite H0. lia.
+  apply H4 in H5. replace (Datatypes.S n) with (n + 1).
+  pose proof (shift_addition s 0 1 (n + 1)). rewrite H6.
+  replace (1 + (n + 1)) with (n + 1 + 1).
+  now replace (T1 :: Γ' ++ Γ0) with ((T1 :: Γ') ++ Γ0).
+  lia. lia. admit.
+- intros. simpl. refine (TApp _ _ T11 _ _ _ _). 
+  refine (IHtype_step1 _ _ _ _ _ _ H1 H2). auto.
+  refine (IHtype_step2 _ _ _ _ _ _ H1 H2). auto. Admitted.
+
+Corollary lem9_3_8: forall Γ S t T s, S :: Γ |- t : T -> Γ |- s : S
+-> Γ |- reverse_shift 0 ([0 |→ shift 0 1 s] t) : T.
+intros. pose proof (lem9_3_8_prep S Γ nil t T). 
+assert (nil ++ S :: Γ = S :: Γ). now simpl. rewrite H2 in H1. 
+apply H1 with (n:=0) (s:=s) in H. now simpl in H. now simpl. replace (shift 0 0 s) with s.
+apply H0. pose proof (shift_id s). now rewrite H3. Qed.
 
 Theorem thm9_3_9: forall Γ t t' T, Γ |- t : T -> t -→ t' -> Γ |- t' : T.
 intros. generalize dependent t'. induction H.

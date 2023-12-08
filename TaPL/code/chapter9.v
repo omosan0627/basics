@@ -299,3 +299,49 @@ intros. generalize dependent t'. induction H.
   + subst. pose proof (IHtype_step1 _ H5). refine (TApp _ _ _ _ _ H2 H0).
   + subst. pose proof (IHtype_step2 _ H6). refine (TApp _ _ _ _ _ H H2).
   + subst. inversion H. subst. refine (lem9_3_8 _ _ _ _ _ H4 H0). Qed.
+
+Inductive multi_term_step: term -> term -> Prop:=
+  | Refl: forall t, multi_term_step t t
+  | Trans: forall t1 t2 t3, term_step t1 t2 -> multi_term_step t2 t3 -> multi_term_step t1 t3.
+ 
+Notation "t1 -→* t2" := (multi_term_step t1 t2) (at level 62).
+
+Fixpoint R (T: type) (t:term): Prop :=
+  match T with
+  | Bool => exists t', value t' /\ t -→* t'
+  | T1 → T2 => (exists t', value t' /\ t -→* t') /\ (forall s, R T1 s -> R T2 (t ◦ s))
+  end.
+
+Lemma lem12_1_3: forall t T, R T t -> exists t', value t' /\ t -→* t'.
+destruct T. intros. now unfold R in H. intros. now unfold R in H. Qed.
+
+Lemma lem12_1_4: forall T t t', nil |- t : T /\ t -→ t' -> (R T t <-> R T t').
+Admitted.
+
+Inductive multi_vR: (list type) -> (list term) -> Prop :=
+  | vRNil: multi_vR nil nil
+  | vRCons: forall T Γ v vlist, nil |- v : T -> value v -> R T v -> multi_vR Γ vlist ->
+  multi_vR (T :: Γ) (v :: vlist).
+
+Fixpoint multi_subst (j: nat) (vlist: list term) (t: term): term :=
+  match vlist with
+  | nil => t
+  | v :: vlist' => subst j v (multi_subst (S j) vlist' t)
+  end.
+
+Lemma lem12_1_5: forall Γ t T vlist, Γ |- t : T -> multi_vR Γ vlist ->
+R T (multi_subst 0 vlist t).
+intros. generalize dependent vlist. induction H.
+- intros. replace (multi_subst 0 vlist True) with True. simpl. exists True. split.
+  constructor. constructor. admit.
+- intros. replace (multi_subst 0 vlist False) with False. simpl. exists False. split.
+  constructor. constructor. admit.
+- intros. admit.
+- intros. generalize dependent k. generalize dependent T. induction H0.
+  + intros. simpl in H. inversion H.
+  + intros. simpl. admit.
+- intros.
+
+Theorem lem12_1_6: forall t T, nil |- t : T -> exists t', value t' /\ t -→* t'.
+intros. pose proof (lem12_1_5 nil nil t T H vRNil). simpl in H0. now apply lem12_1_3 in H0.
+Qed.

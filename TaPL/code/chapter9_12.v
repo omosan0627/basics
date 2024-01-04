@@ -421,24 +421,35 @@ induction vlist.
 - intros. simpl. apply IHvlist. Qed.
 
 Lemma multi_subst_abst_value: forall vlist T t, value (multi_subst vlist (λ T, t)).
-Admitted.
+induction vlist. intros. simpl. constructor. intros. simpl. apply IHvlist. Qed.
 
-Lemma multi_subst_abst_app: forall vlist T t v, value v ->
-multi_subst vlist ((λ T, t) ◦ v) -→ multi_subst vlist (reverse_shift 0 ([0 |→ shift 0 1 v] t)).
-induction vlist. intros. simpl. constructor. apply H.
-intros. simpl. pose proof (IHvlist T (reverse_shift 1 ([1 |→ shift 0 1 (shift 0 1 a)] t)) _ H).
-admit. Admitted.
+Lemma get_var_type_less_k: forall Γ k T, get_var_type k Γ = Some T -> k < length Γ.
+induction Γ. intros. simpl in H. inversion H. intros. simpl in H.
+remember (k =? 0) as b. symmetry in Heqb. destruct b. 
+- apply Nat.eqb_eq in Heqb. subst. simpl. lia.
+- apply IHΓ in H. simpl. lia. Qed.
 
-Lemma multi_vR_nil: forall Γ t T vlist, multi_vR Γ vlist -> Γ |- t : T ->
-nil |- multi_subst vlist t : T. 
-induction Γ. 
-- intros. inversion H. now simpl.
-- intros. inversion H. subst. simpl.
+Lemma Γ_nil: forall t Γ T Γ', Γ |- t : T -> Γ ++ Γ' |- t : T. 
+intros. generalize dependent Γ'. induction H.
+- intros. constructor.
+- intros. constructor.
+- intros. constructor. apply IHtype_step1. apply IHtype_step2. apply IHtype_step3.
+- intros. constructor. pose proof (get_var_type_lt Γ Γ' k). rewrite H in H0.
+  apply H0. now pose proof (get_var_type_less_k _ _ _ H).
+- intros. constructor. replace (T1 :: Γ ++ Γ') with ((T1 :: Γ) ++ Γ').
+  apply IHtype_step. simpl. reflexivity.
+- intros. refine (TApp _ _ T11 _ _ _ _). apply IHtype_step1. apply IHtype_step2. Qed.
+
+Lemma multi_vR_nil: forall Γ vlist t T, multi_vR Γ vlist -> Γ |- t : T ->
+nil |- multi_subst vlist t : T.
+intros. generalize dependent T. generalize dependent t. induction H.
+- intros. now simpl.
+- intros. simpl.
   remember (reverse_shift 0 ([0 |→ shift 0 1 v] t)) as t'. symmetry in Heqt'.
-  assert (Γ |- (λ a, t) ◦ v : T). refine (TApp _ _ a _ _ _ _).
-  constructor. apply H0. admit. assert ((λ a, t) ◦ v -→ t'). subst.
-  now constructor. pose proof (thm9_3_9 _ _ _ _ H1 H2).
-  Admitted.
+  assert (Γ |- (λ T, t) ◦ v : T0). refine (TApp _ _ T _ _ _ _).
+  constructor. auto. pose proof (Rtype _ _ H0). pose proof (Γ_nil v nil T Γ H3). 
+  now simpl in H4. assert (Γ |- t' : T0).
+  refine (thm9_3_9 _ _ _ _ H3 _). subst. now constructor. refine (IHmulti_vR _ _ H4). Qed.
 
 
 Lemma subst_equal: forall t Γ T v, Γ |- t : T -> t = [length Γ |→ v] t.
@@ -448,13 +459,15 @@ induction t.
 - intros. simpl. inversion H. subst. pose proof (IHt1 _ _ v H4).
   pose proof (IHt2 _ _ v H6). pose proof (IHt3 _ _ v H7).
   symmetry in H0, H1, H2. now rewrite H0, H1, H2.
-- intros. inversion H. subst. assert (n < length Γ). admit. simpl. admit.
+- intros. inversion H. subst. simpl. remember (n =? length Γ) as b. symmetry in Heqb.
+  destruct b. apply Nat.eqb_eq in Heqb. pose proof (get_var_type_less_k _ _ _ H2). lia.
+  reflexivity.
 - intros. simpl. destruct T. 
   + inversion H.
   + inversion H. subst. pose proof (IHt _ _ (shift 0 1 v) H2). simpl in H0. symmetry in H0.
     now rewrite H0.
 - intros. simpl. inversion H. subst. pose proof (IHt1 _ _ v H3). pose proof (IHt2 _ _ v H5).
-  symmetry in H0. symmetry in H1. rewrite H0. rewrite H1. reflexivity. Admitted.
+  symmetry in H0. symmetry in H1. rewrite H0. rewrite H1. reflexivity. Qed.
 
 Lemma reverse_shift_equal: forall t Γ T, Γ |- t : T -> t = reverse_shift (length Γ) t.
 induction t.
@@ -462,17 +475,137 @@ induction t.
 - intros. now simpl.
 - intros. simpl. inversion H. subst. pose proof (IHt1 _ _ H4). pose proof (IHt2 _ _ H6).
   pose proof (IHt3 _ _ H7). symmetry in H0, H1, H2. now rewrite H0, H1, H2.
-- intros. simpl. inversion H. subst. admit.
+- intros. simpl. inversion H. subst. remember (length Γ <=? n) as b. symmetry in Heqb.
+  destruct b. apply Nat.leb_le in Heqb. pose proof (get_var_type_less_k _ _ _ H2). lia.
+  reflexivity.
 - intros. simpl. inversion H. subst. pose proof (IHt _ _ H4). simpl in H0. symmetry in H0.
   now rewrite H0.
 - intros. simpl. inversion H. subst. pose proof (IHt1 _ _ H3). pose proof (IHt2 _ _ H5).
-  symmetry in H0, H1. now rewrite H0, H1. Admitted.
+  symmetry in H0, H1. now rewrite H0, H1. Qed.
 
 Corollary multi_subst_equal: forall vlist t T, nil |- t : T -> t = multi_subst vlist t.
 induction vlist. intros. simpl. reflexivity.
 intros. simpl. pose proof (subst_equal _ _ _ (shift 0 1 a) H). simpl in H0. symmetry in H0. 
 rewrite H0. pose proof (reverse_shift_equal _ _ _ H). simpl in H1. symmetry in H1. 
 rewrite H1. apply (IHvlist _ T). apply H. Qed.
+
+Fixpoint free_var (n: nat) (t: term): nat :=
+match t with
+  | True => 0
+  | False => 0
+  | Var k => k + 1 - n
+  | If t1 Then t2 Else t3 => max (max (free_var n t1) (free_var n t2)) (free_var n t3)
+  | λ _, t' => free_var (S n) t'
+  | t1 ◦ t2 => max (free_var n t1) (free_var n t2)
+  end.
+
+Lemma free_var_zero: forall Γ t T, Γ |- t : T -> free_var (length Γ) t = 0.
+intros. induction H.
+- now simpl.
+- now simpl.
+- simpl. rewrite IHtype_step1, IHtype_step2, IHtype_step3. now simpl.
+- simpl. pose proof (get_var_type_less_k Γ k T). pose proof (H0 H). lia.
+- simpl. now simpl in IHtype_step.
+- simpl. rewrite IHtype_step1, IHtype_step2. now simpl. Qed.
+
+Lemma subst_nochange: forall Γ t x T c, Γ |- t : T -> length Γ <= c -> [c |→ x] t = t.
+intros. generalize dependent x. generalize dependent c. induction H.
+- intros. now simpl.
+- intros. now simpl.
+- intros. pose proof (IHtype_step1 _ H2 x). pose proof (IHtype_step2 _ H2 x).
+  pose proof (IHtype_step3 _ H2 x). simpl. now rewrite H5, H3, H4.
+- intros. apply get_var_type_less_k in H. simpl. 
+  replace (k =? c) with false. reflexivity. symmetry. apply Nat.eqb_neq. lia.
+- intros. simpl. assert (length (T1 :: Γ) <= S c). simpl. lia.
+  pose proof (IHtype_step (S c) H1 (shift 0 1 x)). now rewrite H2.
+- intros. pose proof (IHtype_step1 _ H1 x). pose proof (IHtype_step2 _ H1 x).
+  simpl. now rewrite H3, H2. Qed.
+
+Lemma shift_nochange: forall Γ t T c d, Γ |- t : T -> length Γ <= c -> shift c d t = t.
+intros. generalize dependent c. generalize dependent d. induction H.
+- intros. now simpl.
+- intros. now simpl.
+- intros. simpl. pose proof (IHtype_step1 d c H2). pose proof (IHtype_step2 d c H2).
+  pose proof (IHtype_step3 d c H2). now rewrite H3, H4, H5.
+- intros. simpl. replace (c <=? k) with false. reflexivity. symmetry.
+  apply Nat.leb_nle. apply get_var_type_less_k in H. lia.
+- intros. simpl. assert (shift (S c) d t2 = t2). refine (IHtype_step d (S c) _).
+  simpl. lia. now rewrite H1.
+- intros. simpl. pose proof (IHtype_step1 d c H1). pose proof (IHtype_step2 d c H1).
+  now rewrite H2, H3. Qed.
+
+Lemma reverse_shift_nochange: forall Γ t T c, Γ |- t : T -> length Γ <= c -> 
+reverse_shift c t = t.
+intros. generalize dependent c. induction H.
+- intros. now simpl.
+- intros. now simpl.
+- intros. simpl. pose proof (IHtype_step1 _ H2). pose proof (IHtype_step2 _ H2).
+  pose proof (IHtype_step3 _ H2). now rewrite H3, H4, H5.
+- intros. simpl. replace (c <=? k) with false. reflexivity. symmetry.
+  apply Nat.leb_nle. apply get_var_type_less_k in H. lia.
+- intros. simpl. assert (reverse_shift (S c) t2 = t2). refine (IHtype_step _ _).
+  simpl. lia. now rewrite H1.
+- intros. simpl. pose proof (IHtype_step1 c H1). pose proof (IHtype_step2 c H1).
+  now rewrite H2, H3. Qed.
+
+Lemma subst_swap: forall t x x' T T' n, nil |- x : T -> nil |- x' : T' ->
+[n |→ x'] reverse_shift n ([n |→ x] t) = [n |→ x] reverse_shift (S n) ([(S n) |→ x'] t).
+induction t.
+- intros. now simpl.
+- intros. now simpl.
+- intros. simpl. pose proof (IHt1 _ _ _ _ n H H0). pose proof (IHt2 _ _ _ _ n H H0).
+  pose proof (IHt3 _ _ _ _ n H H0). now rewrite H1, H2, H3.
+- intros. simpl. remember (n =? n0) as b1. remember (n =? S n0) as b2.
+  symmetry in Heqb1. symmetry in Heqb2. destruct b1, b2. 
+  + pose proof (EqNat.beq_nat_true _ _ Heqb1). pose proof (EqNat.beq_nat_true _ _ Heqb2). lia.
+  + pose proof (EqNat.beq_nat_true _ _ Heqb1). subst. 
+    replace (reverse_shift n0 x) with x. replace ([n0 |→ x'] x) with x.
+    unfold reverse_shift. replace (S n0 <=? n0) with false. simpl. replace (n0 =? n0) with true.
+    reflexivity. symmetry. apply Nat.leb_nle. lia. symmetry.
+    refine (subst_nochange _ _ _ _ _ H _). simpl. lia. symmetry. 
+    refine (reverse_shift_nochange _ _ _ n0 H _). simpl. lia.
+  + pose proof (EqNat.beq_nat_true _ _ Heqb2). subst.
+    replace (reverse_shift (S n0) x') with x'. replace ([n0 |→ x] x') with x'.
+    unfold reverse_shift. replace (n0 <=? S n0) with true. simpl. 
+    replace (n0 =? n0) with true. reflexivity. symmetry. apply Nat.leb_le. lia. symmetry.
+    refine (subst_nochange _ _ _ _ _ H0 _). simpl. lia. symmetry.
+    refine (reverse_shift_nochange _ _ _ (S n0) H0 _). simpl. lia.
+  + remember (n <? n0) as b. symmetry in Heqb. destruct b. 
+    * apply Nat.ltb_lt in Heqb. unfold reverse_shift.
+      replace (n0 <=? n) with false. replace (S n0 <=? n) with false. simpl.
+      replace (n =? n0) with false. reflexivity. symmetry. 
+      apply Nat.leb_nle. lia. symmetry. apply Nat.leb_nle. lia.
+    * apply Nat.ltb_ge in Heqb. apply EqNat.beq_nat_false in Heqb1.
+      apply EqNat.beq_nat_false in Heqb2. unfold reverse_shift.
+      replace (n0 <=? n) with true. replace (S n0 <=? n) with true. simpl.
+      replace (pred n =? n0) with false. reflexivity. symmetry.
+      apply Nat.eqb_neq. lia. symmetry. apply Nat.leb_le. lia. symmetry. apply Nat.leb_le. lia.
+- intros. simpl. replace (shift 0 1 x) with x. replace (shift 0 1 x') with x'.
+  pose proof (IHt _ _ _ _ (S n) H H0). now rewrite H1. symmetry.
+  refine (shift_nochange _ _ _ _ _ H0 _). simpl. lia. symmetry.
+  refine (shift_nochange _ _ _ _ _ H _). simpl. lia.
+- intros. simpl. pose proof (IHt1 _ _ _ _ n H H0). pose proof (IHt2 _ _ _ _ n H H0).
+  now rewrite H1, H2. Qed.
+
+Lemma multi_subst_step: forall vlist Γ T T' t x, value x -> R T' x -> multi_vR Γ vlist ->
+multi_subst vlist ((λ T, t) ◦ x) -→ multi_subst vlist (reverse_shift 0 ([0 |→ shift 0 1 x] t)).
+induction vlist.
+- intros. simpl. now constructor.
+- intros. inversion H1. subst.
+  simpl. remember (reverse_shift 1 ([1 |→ (shift 0 1 (shift 0 1 a))] t)) as t'.
+  remember (reverse_shift 0 ([0 |→ shift 0 1 a] x)) as x'.
+  pose proof (Rtype _ _ H0). assert ([0 |→ shift 0 1 a] x = x). 
+  refine (subst_nochange _ _ _ _ _ H2 _). simpl. lia. rewrite H3 in Heqx'.
+  symmetry in Heqx'. assert (reverse_shift 0 x = x).
+  refine (reverse_shift_nochange _ _ _ 0 H2 _). simpl. lia. rewrite H5 in Heqx'.
+  assert ([0 |→ shift 0 1 a] reverse_shift 0 ([0 |→ shift 0 1 x] t) = [0 |→ shift 0 1 x] t').
+  subst. apply Rtype in H6.
+  assert (shift 0 1 a = a). refine (shift_nochange _ _ _ 0 _ H6 _). simpl. lia.
+  rewrite H8. rewrite H8.
+  refine (subst_swap _ _ _ T' T0 0 _ _). replace (shift 0 1 x') with x'. apply H2.
+  symmetry. apply (shift_nochange _ _ _ 0 _ H2). simpl. lia. apply H6.
+  rewrite H8. subst. refine (IHvlist Γ0 _ T' _ _ _ _ _). apply H. apply H0. 
+  apply H7. Qed.
 
 Lemma lem12_1_5: forall Γ t T vlist, Γ |- t : T -> multi_vR Γ vlist ->
 R T (multi_subst vlist t).
@@ -531,7 +664,8 @@ intros. generalize dependent vlist. induction H.
     refine (multi_app2 _ _ _ H3 _). apply multi_subst_abst_value.
     pose proof (multi_subst_app vlist (λ T1, t2) x). 
     replace (multi_subst vlist x) with x in H9.
-    assert (multi_subst vlist ((λ T1, t2) ◦ x) -→ multi_subst vlist t'). admit.
+    assert (multi_subst vlist ((λ T1, t2) ◦ x) -→ multi_subst vlist t').
+    rewrite Heqt'. refine (multi_subst_step _ _ _ _ _ _ H2 H5 H0).
     rewrite H9 in H8. refine (multi_right _ _ _ H8 H10).
     refine (multi_subst_equal _ _ T1 _). refine (Rtype _ _ H5).
   + refine (lem12_1_4_right_multi _ _ _ _ H8 H7).
@@ -542,9 +676,8 @@ intros. generalize dependent vlist. induction H.
   replace (multi_subst vlist (t1 ◦ t2)) with 
   ((multi_subst vlist t1) ◦ (multi_subst vlist t2)). apply H5. apply H3.
   apply multi_subst_app.
-Admitted.
+Qed.
 
-
-Theorem lem12_1_6: forall t T, nil |- t : T -> exists t', value t' /\ t -→* t'.
+Theorem lem12_1_6: forall t T, nil |- t : T -> halts t.
 intros. pose proof (lem12_1_5 nil t T nil H vRNil). simpl in H0. now apply lem12_1_3 in H0.
 Qed.

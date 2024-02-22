@@ -112,9 +112,9 @@
     これを圏$C^{\mathrm{op}}$の反対圏と呼ぶ.
 \end{definition}
 \begin{remark}
-    $f^{\mathrm{op}}$のことを単に$f$と書く場合が多い. 米田周りの話ではかなり省略することが多いが, よくわからなくなったら
-    $\mathrm{op}$をつけて丁寧に計算すれば良い.「双対を考えると次の定理が導ける」と言った場合は, $C$に$C^{\mathrm{op}}$を
-    代入して, $C$の言葉で書き直すことで従うことを差す場合が多そう.
+    「双対を考えると次の定理が導ける」と言った場合は, $C$に$C^{\mathrm{op}}$を
+    代入して, $C$の言葉で書き直すことで従うことを差す場合が多そう. 他にも$C$のcoequalizerは
+    $C^{op}$のequalizer$\langle e, f^{\mathrm{op}} \rangle$の$\mathrm{op}$を取ったもの$\langle e, f \rangle$とも定義できる.
 \end{remark}
 \begin{definition}
     $F: C \rightarrow D$を関手とするとき, 関手$F^{\mathrm{op}}: C^{\mathrm{op}} \rightarrow D^{\mathrm{op}}$を以下のように定める.
@@ -123,6 +123,22 @@
         \item $f^{op} \in \mathrm{Mor}(C^{\mathrm{op}})$に対して, $F^{\mathrm{op}}(f^{\mathrm{op}}):=F(f)^{\mathrm{op}}$
     \end{itemize}
 \end{definition}
+\begin{definition}
+    C,D,Eを圏とし, $F: C \rightarrow D, G: D \rightarrow E$とする.合成関手$GF:C \rightarrow E$
+    は次のように定まる関手である.
+    \begin{itemize}
+        \item 対象$a \in \mathrm{Ob}(C)$を$GF(a)$に対応させる.
+        \item 射$f \in \mathrm{Mor}(C)$を$GF(f)$に対応させる.
+    \end{itemize}
+    $F: C \rightarrow D, G: D^{\mathrm{op}} \rightarrow E$については, 合成関手$GF^{\mathrm{op}}$があるが,
+    これを単に$GF$と書くこともある.
+\end{definition}
+\begin{remark}
+    反変関手を導入したいときに$C^{\mathrm{op}} \rightarrow D$とするのが主な目的な気がしてきた。なので,
+    $C^{\mathrm{op}} \rightarrow D$を見たら、射を入れ替えないとなーくらいの認識でよさそう。$C$のものを$C^{\mathrm{op}}$
+    に代入したりすることもあって、暗黙に射を入れ替える操作が行われていると思うべき。基本$C^{\mathrm{op}}$を表に出す必要はなくて,
+    必要に応じて射を入れ替える必要があるくらいに思えばよさそう.
+\end{remark}
 \begin{definition}
     圏$C, D$の直積$C \times D$を以下のように定義する.
     \begin{itemize}
@@ -471,6 +487,10 @@ c \ar[r]^-{h}& Gd
 \begin{proof}
     各点Kan拡張が存在することを示す.
 \end{proof}
+\subsection{エンド}
+\begin{definition}
+    
+\end{definition}
 
 
 \end{document}

@@ -84,7 +84,8 @@ Inductive step: term -> term-> Prop :=
   | EPred: forall t1 t1', step t1 t1' -> step (Pred t1) (Pred t1')
   | EIsZeroZero: step (IsZero O) True
   | EIsZeroSucc: forall nv, nvalue nv -> step (IsZero (Succ nv)) False
-  | EIsZero: forall t1 t1', step t1 t1' -> step (IsZero t1) (IsZero t1').
+  | EIsZero: forall t1 t1', step t1 t1' -> step (IsZero t1) (IsZero t1')
+  | EIfZero: forall t2 t3, step (If True Then t2 Else t3) O.
 
 Notation "A --> B" := (step A B) (at level 65).
 
@@ -108,6 +109,7 @@ destruct H2. exists (If x Then t2 Else t3). constructor. apply H2.
   exists False. now constructor.
   + destruct H0. exists (IsZero x). now constructor. Qed.
 
+
 Theorem thm8_3_3: forall t T, t : T -> forall t', t --> t' -> t' : T.
 intros ? ? ?. induction H.
 - intros. inversion H.
@@ -126,4 +128,3 @@ intros ? ? ?. induction H.
   + constructor.
   + constructor.
   + apply IHtype_bind in H2. now constructor. Qed.
-  

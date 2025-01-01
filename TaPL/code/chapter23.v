@@ -126,7 +126,7 @@ Fixpoint env_shift (c d: nat) (Γ: list env_elem): list env_elem :=
     match Γ with
     | nil => nil
     | env_var_bind T :: Γ' => env_var_bind (type_shift c d T) :: env_shift c d Γ'
-    | env_type_bind :: Γ' => env_type_bind :: Γ'
+    | env_type_bind :: Γ' => env_type_bind :: env_shift c d Γ'
     end.
 
 Fixpoint env_reverse_shift (c: nat) (Γ: list env_elem): list env_elem :=
@@ -320,6 +320,110 @@ induction Γ'.
     + simpl. simpl in H. apply IHΓ' with (S:=S). auto. admit. admit. apply H2.
 Admitted.
 
+Lemma type_shift_double: forall T m n d, m >= n -> type_shift (m+1) d (type_shift n 1 T)
+= type_shift n 1 (type_shift m d T). induction T.
+- intros. simpl. reflexivity.
+- intros. simpl. remember (n0 <=? n) as b. destruct b.
+    + simpl. remember (m <=? n) as b. destruct b. assert ((m+1<=?n+1)=true).
+    rewrite Nat.leb_le. symmetry in Heqb0. rewrite Nat.leb_le in Heqb0. lia. rewrite H0.
+    simpl. assert ((n0 <=? n + d) = true). apply Nat.leb_le. symmetry in Heqb.
+    apply Nat.leb_le in Heqb. lia. rewrite H1. assert (n+1+d=n+d+1). lia. rewrite H2.
+    reflexivity. simpl. symmetry in Heqb. rewrite Heqb. assert ((m+1<=?n+1)=false).
+    rewrite Nat.leb_gt. symmetry in Heqb0. rewrite Nat.leb_gt in Heqb0. lia. rewrite H0.
+    reflexivity.
+    + simpl. assert (n0 > n). symmetry in Heqb. apply Nat.leb_gt in Heqb. lia.
+    assert ((m+1<=?n)=false). apply Nat.leb_gt. lia. rewrite H1. assert ((m<=?n)=false).
+    apply Nat.leb_gt. lia. rewrite H2. simpl. assert ((n0<=?n)=false). apply Nat.leb_gt.
+    lia. rewrite H3. auto.
+- intros. simpl. rewrite IHT1. rewrite IHT2. reflexivity. lia. lia.
+- intros. simpl. pose proof (IHT (m+1) (n+1) d). assert (m + 1 >= n + 1). lia.
+  apply H0 in H1. rewrite H1. reflexivity. 
+Qed.
+
+Lemma type_subst_dist_m: forall T c m U, type_shift (m+1) c ([[[m |→ U]]] T)
+= [[[m |→ type_shift (m+1) c U]]] (type_shift (m+1) c T). induction T.
+- intros. simpl. reflexivity.
+- intros. simpl. remember (n=?m) as b. destruct b. symmetry in Heqb.
+  apply Nat.eqb_eq in Heqb. subst. assert ((m+1<=?m)=false). apply Nat.leb_gt.
+  lia. rewrite H. simpl. assert ((m=?m)=true). apply Nat.eqb_eq. lia. rewrite H0.
+  reflexivity. remember (m+1<=?n) as b. destruct b. simpl. symmetry in Heqb0.
+  rewrite Heqb0. assert ((n+c =? m)=false). apply Nat.leb_le in Heqb0. apply Nat.eqb_neq.
+  lia. rewrite H. reflexivity. simpl. symmetry in Heqb0. rewrite Heqb0.
+  symmetry in Heqb. rewrite Heqb. reflexivity.
+- intros. simpl. rewrite IHT1. rewrite IHT2. reflexivity.
+- intros. simpl. pose proof (IHT c (m+1) (type_shift 0 1 U)).
+  pose proof (type_shift_double U (m+1) 0 c). assert (m+1>=0). lia. apply H0 in H1.
+  symmetry in H1. rewrite H1. assert (S m = m + 1). lia. rewrite H2. rewrite H. reflexivity.
+Qed.
+
+Lemma type_subst_dist_zero: forall T c m U, 
+type_shift m c ([[[m |→ U]]] T)
+= [[[m + c |→ type_shift m c U]]] (type_shift m c T).
+induction T.
+- intros. simpl. reflexivity.
+- intros. simpl. remember (n =? m) as b. destruct b. assert (n = m).
+  apply EqNat.beq_nat_eq in Heqb. apply Heqb. subst. assert (m <= m). lia. apply Compare_dec.leb_correct in H.
+  rewrite H. simpl. assert ((m+c =? m+c) = true). apply Nat.eqb_eq. reflexivity. rewrite H0.
+  reflexivity. simpl. remember (m <=? n) as b. destruct b. simpl. 
+  assert (n + c <> m + c). assert (n <> m). symmetry in Heqb. apply EqNat.beq_nat_false in Heqb.
+  auto. lia. apply Nat.eqb_neq in H. rewrite H. reflexivity. simpl.
+  assert (m > n). symmetry in Heqb0. apply Nat.leb_gt in Heqb0. lia. assert (n <> m + c).
+  lia. apply Nat.eqb_neq in H0. rewrite H0. reflexivity. 
+- intros. simpl. rewrite IHT1. rewrite IHT2. reflexivity.
+- intros. simpl. pose proof (IHT c (m+1) (type_shift 0 1 U)). 
+  pose proof (type_shift_double U m 0 c). assert (m >= 0). lia. apply H0 in H1. symmetry in H1.
+  rewrite H1. assert (S m = m + 1). lia. rewrite H2. rewrite H. assert (m + 1 + c = S (m + c)).
+  lia. rewrite H3. reflexivity.
+Qed.
+
+Lemma type_shift_inversion: forall T c, type_reverse_shift c (type_shift c 1 T) = T.
+induction T.
+- intros. simpl. reflexivity.
+- intros. simpl. remember (c<=?n) as b. destruct b. simpl. assert ((c<=?n+1)=true).
+  apply Nat.leb_le. symmetry in Heqb. apply Nat.leb_le in Heqb. lia. rewrite H.
+  assert (Init.Nat.pred (n+1) = n). lia. rewrite H0. reflexivity. simpl.
+  symmetry in Heqb. rewrite Heqb. reflexivity.
+- intros. simpl. rewrite IHT1. rewrite IHT2. reflexivity.
+- intros. simpl. pose proof IHT (c+1). rewrite H. auto.
+Qed.
+
+Lemma type_shift_swap_m: forall T m n, m >= n -> 
+type_shift m 1 (type_reverse_shift n T) = type_reverse_shift n (type_shift (m+1) 1 T).
+induction T.
+- intros. simpl. reflexivity.
+- intros. simpl. remember (n0<=?n) as b. destruct b.
+    + simpl. symmetry in Heqb. apply Nat.leb_le in Heqb.
+    remember (m+1<=?n) as b. destruct b. symmetry in Heqb0. apply Nat.leb_le in Heqb0.
+    simpl. assert ((n0 <=? n+1)=true). apply Nat.leb_le. lia. rewrite H0.
+    assert ((m <=? Init.Nat.pred n) = true). apply Nat.leb_le. lia. rewrite H1.
+    assert (Init.Nat.pred n + 1 = Init.Nat.pred (n+1)). lia. rewrite H2. reflexivity.
+(* - intros. simpl. rewrite IHT1. rewrite IHT2. reflexivity. auto. auto.
+- intros. simpl. pose proof (IHT (m+1) (n+1)). rewrite H0. reflexivity. lia. *)
+Admitted. 
+
+Lemma type_shift_zero: forall T c, type_shift c 0 T = T.
+induction T.
+- intros. simpl. auto.
+- intros. simpl. remember (c <=? n) as b. destruct b. assert (n + 0 = n). lia.
+  rewrite H. reflexivity. reflexivity.
+- intros. simpl. rewrite IHT1. rewrite IHT2. reflexivity.
+- intros. simpl. pose proof (IHT (c+1)). rewrite H. reflexivity.
+Qed.
+
+Lemma env_shift_zero: forall Γ, env_shift 0 0 Γ = Γ.
+induction Γ.
+- simpl. reflexivity.
+- destruct a. simpl. pose proof (type_shift_zero t 0). rewrite H. rewrite IHΓ. reflexivity.
+  simpl. rewrite IHΓ. reflexivity.
+Qed.
+
+Lemma env_shift_inversion: forall Γ, env_reverse_shift 0 (env_shift 0 1 Γ) = Γ.
+induction Γ.
+- simpl. reflexivity.
+- destruct a. simpl. rewrite IHΓ. pose proof (type_shift_inversion t 0). rewrite H.
+  reflexivity. simpl. rewrite IHΓ. reflexivity.
+Qed.
+
 Lemma th23_5_1_type_prep: forall Γ Γ' m t T S U, Γ' ++ env_type_bind :: Γ |- t : T ->
 m = count_env_type_bind Γ' ->
 U = type_shift 0 (m + 1) S ->
@@ -362,7 +466,18 @@ simpl in H3. apply H3. rewrite HeqΓ''. auto. auto. auto.
       ([[[(m + 1)
        |→ type_shift 0 1 U]]] T)). 
 pose proof (IHtype_bind U S m Γ0 Γ'). assert (Datatypes.S m = m + 1). lia. rewrite H6 in H5.
-apply H5. auto. auto. auto. pose proof (H3 H4 H5). admit.
+apply H5. auto. auto. auto. pose proof (H3 H4 H5). admit. (* hard *)
+Admitted.
+
+(* T <- T'(0) <- U(m) 
+T <- U(m+1) <- (T' <- U(m))(0) *)
+
+Lemma env_one_less_var_bind: forall Γ Γ' T, env (Γ ++ env_var_bind T :: Γ') -> env (Γ ++ Γ').
+induction Γ.
+- intros. simpl. simpl in H. inversion H. subst. apply H1.
+- intros. simpl. simpl in H. inversion H.
+    + subst. admit.
+    + subst. inversion H. subst. constructor. apply IHΓ with (T:=T). apply H1.
 Admitted.
 
 Lemma th23_5_1_var_prep: forall S Γ Γ' t T n m s, 
@@ -374,21 +489,27 @@ m = count_env_type_bind Γ' ->
 intros. remember (Γ' ++ env_var_bind S :: env_shift 0 m Γ) as Γ''. generalize dependent Γ'.
 generalize dependent s. generalize dependent S. generalize dependent Γ. 
 generalize dependent n. generalize dependent m. induction H2.
-- intros. simpl. constructor. admit.
-- intros. simpl. constructor. admit. apply IHtype_bind with (S:=S)(m:=m). auto. auto. auto. auto.
-- intros. admit.
-- intros. simpl. constructor. admit. rewrite HeqΓ'' in IHtype_bind.
+- intros. simpl. constructor. apply env_one_less_var_bind with (T:=S). symmetry in HeqΓ''.
+rewrite HeqΓ''. auto.
+- intros. simpl. constructor. apply env_one_less_var_bind with (T:=S). 
+  symmetry in HeqΓ''. rewrite HeqΓ''. apply H. apply IHtype_bind with (S:=S)(m:=m). auto. auto. auto. auto.
+- intros. simpl. remember (k =? n) as b. destruct b. admit. simpl. remember (n <=? k) as c. destruct c. 
+  admit. admit.
+- intros. simpl. constructor. apply env_one_less_var_bind with (T:=S). symmetry in HeqΓ''. rewrite HeqΓ''. auto.
+ rewrite HeqΓ'' in IHtype_bind.
  pose proof (IHtype_bind m (n + 1) Γ0 S s H0 (env_var_bind T1 :: Γ')).
  assert (Datatypes.S n = n + 1). lia. rewrite H5. simpl in H4.
  assert (shift 0 1 (shift 0 (n + 1) s) = shift 0 (n + 1 + 1) s).
  admit. rewrite H6. apply H4. auto. auto. auto. 
-- intros. simpl. admit.
-- intros. simpl. constructor. admit. 
+- intros. simpl. apply TApp' with (T11:=T11). apply env_one_less_var_bind with (T:=S). symmetry in HeqΓ''. rewrite HeqΓ''. auto.
+  apply IHtype_bind1 with (S:=S). auto. auto. auto. auto. apply IHtype_bind2 with (S:=S).
+  auto. auto. auto. auto.
+- intros. simpl. constructor. apply env_one_less_var_bind with (T:=S). symmetry in HeqΓ''. rewrite HeqΓ''. auto.
   pose proof (IHtype_bind (m + 1) n Γ0 S s H0 (env_type_bind :: (env_shift 0 1 Γ'))).
   simpl in H4. assert (env_shift 0 1 Γ' ++ env_shift 0 (m + 1) Γ0 = env_shift 0 1 (Γ' ++ env_shift 0 m Γ0)).
   admit. rewrite H5 in H4. apply H4. admit. admit. admit.
-- intros. simpl. constructor. admit. apply IHtype_bind with (S:=S). auto.
-  auto. auto. auto.
+- intros. simpl. constructor. apply env_one_less_var_bind with (T:=S). symmetry in HeqΓ''. rewrite HeqΓ''. auto.
+  apply IHtype_bind with (S:=S). auto. auto. auto. auto.
 Admitted.
 
 Theorem th23_5_1: forall Γ t T t', Γ |- t : T -> t -→ t' -> Γ |- t' : T.
@@ -403,7 +524,7 @@ intros.
     - subst. apply TApp' with (T11:=T11). auto. auto. apply IHtype_bind2. apply H7.
     - subst. inversion H0. subst. inversion H0. subst. 
     pose proof (th23_5_1_var_prep T11 Γ nil t12 T12). simpl in H3. 
-    pose proof (H3 0 0 t2 H1). simpl in H4. assert (env_shift 0 0 Γ = Γ). admit.
+    pose proof (H3 0 0 t2 H1). simpl in H4. pose proof (env_shift_zero Γ).
     rewrite H5 in H4. apply H4. auto. auto. auto.
 + intros. inversion H1.
 + intros. inversion H1.
@@ -411,6 +532,6 @@ intros.
     - subst. inversion H0. subst. 
     pose proof (th23_5_1_type_prep (env_shift 0 1 Γ) nil 0 t0 T T' (type_shift 0 1 T') H6).
     simpl in H2. assert (0 = 0). auto. assert (type_shift 0 1 T' = type_shift 0 1 T'). auto.
-    apply H2 in H3. assert (env_reverse_shift 0 (env_shift 0 1 Γ) = Γ). admit. rewrite H7 in H3.
+    apply H2 in H3. pose proof (env_shift_inversion Γ). rewrite H7 in H3.
     apply H3. apply H4.
-Admitted.
+Qed.

@@ -783,11 +783,8 @@ induction Γ.
 Admitted.
 
 Lemma th23_5_1_var_prep: forall S S' Γ Γ' t T n m s s', 
-Γ |- s : S ->
 n = count_env_var_bind Γ' ->
-m = count_env_type_bind Γ' ->
-S' = type_shift 0 m S ->
-s' = type_term_shift 0 m s ->
+Γ' ++ Γ |- shift 0 n s : S ->
 Γ' ++ env_var_bind S' :: (env_shift 0 m Γ) |- t : T ->
 Γ' ++ (env_shift 0 m Γ) |- reverse_shift n ([n |→ shift 0 (n + 1) s'] t) : T.
 intros. remember (Γ' ++ env_var_bind S' :: env_shift 0 m Γ) as Γ''. generalize dependent Γ'.

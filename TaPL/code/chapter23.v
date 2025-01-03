@@ -694,20 +694,107 @@ generalize dependent m. generalize dependent S. generalize dependent U. inductio
   constructor. apply IHenv with (S:=S). auto. simpl in H1. auto. auto. simpl in H0. inversion H0.
 Qed.
 
+Lemma shift_equal: forall T U c d, type_shift c d T = type_shift c d U -> T = U.
+induction T.
+- intros. simpl in H. destruct U. reflexivity. simpl in H. destruct (c <=? n).
+  inversion H. inversion H. simpl in H. inversion H. simpl in H. inversion H.
+- intros. simpl in H. destruct U. simpl in H. destruct (c <=? n). inversion H. inversion H.
+  simpl in H. remember (c <=? n) as b1. remember (c <=? n0) as b2. destruct b1, b2.
+  inversion H. assert (n = n0). lia. subst. auto. symmetry in Heqb1. apply Nat.leb_le in Heqb1.
+  symmetry in Heqb2. apply Nat.leb_gt in Heqb2. inversion H. lia. symmetry in Heqb1. 
+  apply Nat.leb_gt in Heqb1. symmetry in Heqb2. apply Nat.leb_le in Heqb2. inversion H. lia.
+  auto. destruct (c <=? n). simpl in H. inversion H. simpl in H. inversion H.
+  destruct (c <=? n). simpl in H. inversion H. simpl in H. inversion H.
+- intros. simpl in H. destruct U. simpl in H. inversion H. simpl in H. destruct (c <=? n).
+  inversion H. inversion H. simpl in H. inversion H. rewrite IHT1 with (U:=U1)(c:=c)(d:=d).
+  rewrite IHT2 with (U:=U2)(c:=c)(d:=d). auto. auto. auto. simpl in H. inversion H.
+- intros. simpl in H. destruct U. simpl in H. inversion H. simpl in H. destruct (c <=? n).
+  inversion H. inversion H. simpl in H. inversion H. simpl in H. inversion H.
+  rewrite IHT with (U:=U)(c:=c+1)(d:=d). auto. auto.
+Qed.
+
+Lemma get_var_type_and_shift: forall c d k Γ T, get_var_type k Γ = Some T <->
+get_var_type k (env_shift c d Γ) = Some (type_shift c d T).
+split. intros. generalize dependent c. generalize dependent d. generalize dependent k.
+generalize dependent T. induction Γ. intros.
+- simpl. simpl in H. inversion H.
+- intros. destruct a. simpl in H. simpl. remember (k =? 0) as b. destruct b. inversion H.
+  subst. auto. apply IHΓ. apply H. simpl. simpl in H. apply IHΓ. apply H.
+- intros. generalize dependent c. generalize dependent d. generalize dependent k.
+generalize dependent T. induction Γ. intros. simpl. simpl in H. inversion H.
+intros. destruct a. simpl in H. simpl. remember (k =? 0) as b. destruct b. inversion H.
+apply shift_equal in H1. subst. auto. apply IHΓ with (d:=d) (c:=c). apply H. simpl. apply IHΓ with (d:=d) (c:=c).
+apply H.
+Qed.
+
+Lemma get_var_type_and_subst_func: forall Γ k T m U, get_var_type k Γ = Some T
+-> get_var_type k (env_subst m U Γ) = Some ([[[m |→ U]]] T). induction Γ.
+- intros. simpl in H. inversion H.
+- intros. destruct a. simpl. simpl in H. remember (k=?0) as b. destruct b.
+  symmetry in Heqb. inversion H. subst. auto. apply IHΓ. auto.
+  simpl. simpl in H. apply IHΓ. auto.
+Qed.
+
+Lemma get_var_type_and_subst_prep: forall T Γ' k m Γ0 S U, get_var_type k (Γ' ++ env_type_bind :: Γ0) = Some T 
+-> env (Γ' ++ env_type_bind :: Γ0)
+-> m = count_env_type_bind Γ' 
+-> U = type_shift 0 (m + 1) S
+-> get_var_type k (env_reverse_shift m (env_subst m U (Γ' ++ Γ0))) = 
+Some (type_reverse_shift m ([[[m |→ U]]] T)).
+intros. remember (Γ' ++ env_type_bind :: Γ0) as Γ''. generalize dependent Γ'.
+generalize dependent U. generalize dependent S. generalize dependent Γ0. generalize dependent m.
+generalize dependent k. generalize dependent T. induction H0.
+- intros. simpl in HeqΓ''. destruct Γ'. simpl in HeqΓ''. inversion HeqΓ''.
+simpl in HeqΓ''. inversion HeqΓ''.
+- intros. destruct Γ'. simpl in HeqΓ''. inversion HeqΓ''. simpl in H1. rewrite H1.
+  simpl in H. simpl. apply (get_var_type_and_shift 0 1 k). rewrite env_shift_inversion_reverse.
+  rewrite type_shift_inversion_reverse. rewrite H4. rewrite H4 in H.
+  apply get_var_type_and_subst_func. apply H. rewrite free_var_in_type_subst. auto. rewrite H2. rewrite free_var_in_type_shift. auto.
+  lia.
+  simpl in HeqΓ''. inversion HeqΓ''. simpl.
+  simpl in H. assert (get_var_type k Γ = Some (type_reverse_shift 0 T)).
+  assert (T = type_shift 0 1 (type_reverse_shift 0 T)). rewrite type_shift_inversion_reverse.
+  auto. admit. rewrite H3 in H.
+  apply (get_var_type_and_shift 0 1 k). auto.
+  pose proof (IHenv (type_reverse_shift 0 T) k H3).
+  pose proof (H6 (m-1) (env_reverse_shift 0 Γ0) S (type_reverse_shift 0 U)).
+  symmetry in H4. rewrite H4 in H1. simpl in H1. 
+  assert (type_reverse_shift 0 U = type_shift 0 (m - 1 + 1) S).
+  assert (U = type_shift 0 1 (type_shift 0 m S)). rewrite H2. rewrite type_shift_combine.
+  assert (m+1=1+m). lia. rewrite H8. auto. rewrite H8. rewrite type_shift_inversion.
+  assert (m-1+1=m). lia. rewrite H9. auto.
+  assert (env_reverse_shift 0 (env_shift 0 1 Γ) = Γ). rewrite env_shift_inversion. auto.
+  rewrite H5 in H9. rewrite env_reverse_shift_split in H9. simpl in H9. symmetry in H7.
+  assert (m - 1 = count_env_type_bind (env_reverse_shift 0 Γ')).
+  rewrite count_env_type_bind_reverse with (m:=0) in H1. lia. symmetry in H9.
+  pose proof (H7 H8 _ H9 H10). symmetry in H11. apply (get_var_type_and_shift 0 1) in H11.
+  rewrite env_shift_swap_zero in H11. rewrite type_shift_swap_zero in H11.
+  pose proof env_reverse_shift_split. symmetry in H12. rewrite H12 in H11.
+  rewrite env_type_subst_zero in H11. rewrite type_subst_dist_zero in H11.
+  rewrite type_shift_inversion_reverse in H11.
+  rewrite type_shift_inversion_reverse in H11.
+  rewrite env_shift_inversion_reverse in H11. assert (m - 1 + 1 = m). lia.
+  rewrite H13 in H11. auto. admit. rewrite H2. 
+  rewrite free_var_in_type_shift. auto. lia. lia. lia. rewrite free_var_in_type_subst.
+  auto. rewrite H2. assert ((type_shift 0 (m + 1) S) = type_shift 0 1 (type_shift 0 (m - 1 + 1) S)).
+  rewrite type_shift_combine. assert (m + 1 = 1 + (m - 1 + 1)).
+  lia. rewrite H12. auto. rewrite H12. rewrite type_shift_inversion.
+  rewrite free_var_in_type_shift_zero. auto.
+- intros. simpl in H. remember (k =? 0) as b. destruct b. destruct Γ'. simpl in HeqΓ''.
+  inversion HeqΓ''. simpl in HeqΓ''. inversion HeqΓ''. simpl. symmetry in Heqb. rewrite Heqb.
+  inversion H. subst. auto. destruct Γ'. simpl in HeqΓ''. inversion HeqΓ''. simpl in HeqΓ''.
+  inversion HeqΓ''. simpl. symmetry in Heqb. rewrite Heqb. apply IHenv with (S:=S).
+  auto. auto. auto. symmetry in H4. rewrite H4 in H1. simpl in H1. auto.
+Admitted.
+
 Lemma get_var_type_and_subst: forall T Γ' k m Γ0 S U, get_var_type k (Γ' ++ env_type_bind :: Γ0) = Some T 
 -> env (Γ' ++ env_type_bind :: Γ0)
 -> m = count_env_type_bind Γ' 
 -> U = type_shift 0 (m + 1) S
 -> get_var_type k (env_reverse_shift m (env_subst m U Γ' ++ Γ0)) = 
 Some (type_reverse_shift m ([[[m |→ U]]] T)).
-intros. remember (Γ' ++ env_type_bind :: Γ0) as Γ''. generalize dependent Γ'.
-generalize dependent U. generalize dependent S. generalize dependent Γ0. generalize dependent m.
-generalize dependent k. generalize dependent T. induction H0.
-- intros. destruct Γ'. simpl in HeqΓ''. inversion HeqΓ''. simpl in HeqΓ''. inversion HeqΓ''.
-- intros. simpl in H. destruct Γ'. simpl in HeqΓ''. inversion HeqΓ''. simpl in H1.
-  rewrite H4. simpl. rewrite H1. admit.
-  simpl in HeqΓ''. inversion HeqΓ''. simpl. admit.
-- intros.
+intros. assert (env_subst m U Γ' ++ Γ0 = env_subst m U (Γ' ++ Γ0)). admit. rewrite H3.
+apply get_var_type_and_subst_prep with (S:=S). auto. auto. auto. auto.
 Admitted.
 
 Lemma th23_5_1_type_prep: forall Γ Γ' m t T S U, Γ' ++ env_type_bind :: Γ |- t : T ->
@@ -834,6 +921,39 @@ Lemma shift_and_type_term_shift: forall t c d c' d', shift c d (type_term_shift 
 - intros. simpl. rewrite IHt. auto.
 Qed.
 
+Lemma env_type_shift_and_shift_prep1: Lemma env_type_shift_and_shift: forall Γ' s S Γ n m,
+Γ |- s : S ->
+n = count_env_var_bind Γ' ->
+m = count_env_type_bind Γ' ->
+Γ' ++ Γ |- shift 0 n (type_term_shift 0 m s) : type_shift 0 m S.
+induction Γ'. intros. simpl. simpl in H0. simpl in H1. rewrite H0. rewrite H1.
+rewrite type_term_shift_zero. rewrite type_shift_zero. admit.
+intros. destruct a. simpl in H0. simpl in H1. simpl. 
+pose proof (IHΓ' s S Γ (n - 1) m). admit.
+simpl. simpl in H0. simpl in H1. pose proof (IHΓ' s S Γ n (m - 1)). *)
+ forall Γ' s S Γ n m,
+Γ |- s : S ->
+n = count_env_var_bind Γ' ->
+m = count_env_type_bind Γ' ->
+Γ' ++ Γ |- shift 0 n (type_term_shift 0 m s) : type_shift 0 m S.
+induction Γ'. intros. simpl. simpl in H0. simpl in H1. rewrite H0. rewrite H1.
+rewrite type_term_shift_zero. rewrite type_shift_zero. admit.
+intros. destruct a. simpl in H0. simpl in H1. simpl. 
+pose proof (IHΓ' s S Γ (n - 1) m). admit.
+simpl. simpl in H0. simpl in H1. pose proof (IHΓ' s S Γ n (m - 1)).
+
+(* Lemma env_type_shift_and_shift: forall Γ' s S Γ n m,
+Γ |- s : S ->
+n = count_env_var_bind Γ' ->
+m = count_env_type_bind Γ' ->
+Γ' ++ Γ |- shift 0 n (type_term_shift 0 m s) : type_shift 0 m S.
+induction Γ'. intros. simpl. simpl in H0. simpl in H1. rewrite H0. rewrite H1.
+rewrite type_term_shift_zero. rewrite type_shift_zero. admit.
+intros. destruct a. simpl in H0. simpl in H1. simpl. 
+pose proof (IHΓ' s S Γ (n - 1) m). admit.
+simpl. simpl in H0. simpl in H1. pose proof (IHΓ' s S Γ n (m - 1)). *)
+
+
 Lemma th23_5_1_var_prep: forall S S' Γ Γ' t T n m s s', 
 Γ |- s : S ->
 n = count_env_var_bind Γ' ->
@@ -850,8 +970,11 @@ generalize dependent n. generalize dependent m. generalize dependent s'. inducti
 - intros. simpl. constructor. apply env_one_less_var_bind with (T:=S'). rewrite HeqΓ'' in H.
   auto. apply IHtype_bind with (S':=S') (S:=S) (s:=s). auto. auto. auto. auto. auto. auto.
 - intros. simpl. remember (k =? n) as b. destruct b.
-  + admit.
-  + simpl. admit.
+  + assert (reverse_shift n (shift 0 (n + 1) s') = shift 0 n s'). admit. rewrite H6. admit.
+  + simpl. remember (n <=? k) as b. destruct b. symmetry in Heqb0.
+  constructor. apply env_one_less_var_bind with (T:=S'). rewrite HeqΓ'' in H. apply H.
+  assert (n < k). apply Nat.leb_le in Heqb0. symmetry in Heqb. apply Nat.eqb_neq in Heqb. lia.
+  admit. symmetry in Heqb0. apply Nat.leb_gt in Heqb0. admit.
 - intros. simpl. constructor. apply env_one_less_var_bind with (T:=S'). rewrite HeqΓ'' in H.
   apply H. pose proof (IHtype_bind s' m (n+1) Γ0 S' S H2). assert (Datatypes.S n = n + 1).
   lia. rewrite H7. rewrite shift_combine. assert (1 + (n+1) = (n+1+1)). lia. rewrite H8.
